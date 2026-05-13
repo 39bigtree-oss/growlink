@@ -21,6 +21,30 @@
 
 ### ✅ Phase 4 (営業自動化) 完了 — PR #9 マージ済み (`main` HEAD: `175cbbe`)
 
+### ✅ v1.2 完全社内向けリブート — `claude/v1.2-internal-onboarding`
+
+実装内容:
+
+- **トップページ (`/`) を社内営業 LP に刷新**: 求職者向け CTA を削除、業務フロー 5 ステップ + 機能 8 種で構成
+- Login / Footer の「求職者として応募」リンクを削除 (`/apply` は HP 連動用に残置)
+- **`/admin/applicants/new`** — スタッフ代理登録フォーム (氏名・連絡先・希望業態・保有資格)
+- **`POST /api/admin/applicants`** — `applicants:write` 必須
+- **`registerApplicantByStaff`** オーケストレータ: 申込登録 → AI 診断 → PDF 生成 → 招待メール (PDF 添付) 送信
+- メール添付対応:
+  - `EmailMessage.attachments?: EmailAttachment[]`
+  - mock provider が multipart/mixed で .eml に添付埋め込み (base64 RFC 2045)
+  - resend provider が Resend API の attachments フィールドへブリッジ
+  - `buildSkillSheetInviteEmail` が attachments を受け取って本文に「PDF 添付」の一文を自動挿入
+- `generateDiagnosisPdfBuffer` ヘルパ (Buffer で取得)
+- 申込一覧画面のヘッダに「+ 求職者を新規登録」ボタン (`applicants:write` 限定表示)
+
+設計判断 (Recommended):
+- `/api/applicants` (公開) と `/api/admin/applicants` (認証) を **分離**
+- 既存の自動メール (`applicant.receipt` / `staff.notification`) は代理登録フローでは送らず、**「招待メール 1 通だけ」** に集約
+- AI 診断・PDF 生成のどちらか失敗してもメールは送る (PDF 添付なしで)
+
+---
+
 ### ✅ v1.1 Tsumugi ブランド + 本番品質仕上げ — `claude/v1.1-tsumugi-brand`
 
 実装内容:

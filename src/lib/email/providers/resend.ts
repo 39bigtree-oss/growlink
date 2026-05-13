@@ -8,6 +8,9 @@ import type { EmailMessage, EmailProvider, SendResult } from "../types";
  * Resend を使う本番プロバイダ。
  * RESEND_API_KEY が無い場合は呼ぶ前に getEmailProvider() が mock を選ぶので、
  * ここではキー無しでは初期化しない (起動時 crash 防止)。
+ *
+ * v1.2 で添付ファイル対応を追加: Resend API の `attachments` フィールドに
+ * Buffer をそのまま渡せる。
  */
 export function createResendProvider(): EmailProvider {
   const apiKey = process.env.RESEND_API_KEY;
@@ -21,6 +24,11 @@ export function createResendProvider(): EmailProvider {
     async send(msg: EmailMessage): Promise<SendResult> {
       const from = msg.from ?? process.env.EMAIL_FROM ?? "Growlink <no-reply@growlink.example>";
       const replyTo = msg.replyTo ?? process.env.EMAIL_REPLY_TO;
+      const attachments = msg.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      }));
       try {
         const res = await client.emails.send({
           from,
@@ -33,6 +41,7 @@ export function createResendProvider(): EmailProvider {
             "X-Growlink-Template": msg.template,
             "X-Growlink-Locale": msg.locale,
           },
+          ...(attachments && attachments.length > 0 ? { attachments } : {}),
         });
         if (res.error) {
           return { ok: false, provider: "resend", error: res.error.message };

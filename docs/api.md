@@ -91,6 +91,13 @@ AI 適職診断を実行。`?async=1` でジョブ経由 (202)。`regenerate: tr
 
 内部用反応記録 (公開ルートは `/api/feedback/[token]`)。
 
+### `POST /api/admin/applicants` (v1.2)
+
+| Cap | `applicants:write` | スタッフが求職者を **代理登録**。
+リクエスト: `applicantFormSchema` (`agreedToTerms` 除外)。
+動作: 申込登録 → AI 適職診断 → 診断 PDF を **招待メールに添付** して送信。
+レスポンス: `{ ok, applicantId, diagnosisProvider, inviteSent, pdfAttached }`。
+
 ### `POST /api/admin/facilities/import` (multipart)
 
 | Cap | `facilities:write` | CSV 一括インポート。`{created, updated, failed, results[]}` を返す。

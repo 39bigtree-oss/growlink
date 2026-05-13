@@ -4,6 +4,16 @@
  * プロバイダ (`mock` / `resend`) が送信する。
  */
 
+/**
+ * v1.2 で追加: メール添付 (例: AI 適職診断 PDF を招待メールに添付)。
+ * content は Buffer、最大数 MB 想定 (PDF 2 枚 = 100KB 程度)。
+ */
+export type EmailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+};
+
 export type EmailMessage = {
   to: string;
   subject: string;
@@ -17,6 +27,8 @@ export type EmailMessage = {
   from?: string;
   /** 返信先。空なら EMAIL_REPLY_TO 環境変数。 */
   replyTo?: string;
+  /** 添付ファイル (v1.2)。空配列 / undefined なら添付なし。 */
+  attachments?: EmailAttachment[];
 };
 
 export type SendResult =
