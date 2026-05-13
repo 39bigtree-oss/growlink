@@ -1,0 +1,60 @@
+{
+  "_comment": "業態 × 資格マッチング表。required は満点扱い (1.0)、preferred は加点 (0.7)、related は部分点 (0.4)。マッチした最高係数が採用される。資格名はフォーム/spec.md と整合させること。",
+  "matrix": {
+    "HOSPITAL_ACUTE": {
+      "required": ["看護師"],
+      "preferred": ["准看護師", "保健師", "助産師"],
+      "related": ["理学療法士", "作業療法士", "言語聴覚士"]
+    },
+    "HOSPITAL_GENERAL": {
+      "required": ["看護師"],
+      "preferred": ["准看護師", "保健師"],
+      "related": ["理学療法士", "作業療法士", "言語聴覚士", "社会福祉士"]
+    },
+    "CLINIC": {
+      "required": ["看護師", "准看護師"],
+      "preferred": ["保健師"],
+      "related": ["介護福祉士", "社会福祉士"]
+    },
+    "DAYCARE_ELDERLY": {
+      "required": ["介護福祉士"],
+      "preferred": ["介護職員初任者研修", "介護職員実務者研修"],
+      "related": ["看護師", "准看護師", "理学療法士", "作業療法士", "社会福祉士"]
+    },
+    "REHAB_DAY": {
+      "required": ["理学療法士", "作業療法士", "言語聴覚士"],
+      "preferred": ["看護師", "介護福祉士"],
+      "related": ["介護職員実務者研修"]
+    },
+    "HOMEVISIT_NURSE": {
+      "required": ["看護師"],
+      "preferred": ["准看護師", "保健師", "助産師"],
+      "related": ["理学療法士", "作業療法士", "言語聴覚士"]
+    },
+    "HOMEVISIT_NURSE_PSYCHIATRY": {
+      "required": ["看護師"],
+      "preferred": ["准看護師", "保健師"],
+      "related": ["精神保健福祉士", "社会福祉士"]
+    },
+    "HOMEVISIT_CARE": {
+      "required": ["介護福祉士", "介護職員実務者研修"],
+      "preferred": ["介護職員初任者研修", "介護支援専門員（ケアマネージャー）"],
+      "related": ["看護師", "准看護師", "社会福祉士"]
+    },
+    "DAYCARE_DISABILITY": {
+      "required": ["介護福祉士"],
+      "preferred": ["介護職員初任者研修", "介護職員実務者研修", "社会福祉士"],
+      "related": ["看護師", "理学療法士", "作業療法士", "言語聴覚士"]
+    },
+    "HOMEVISIT_DISABILITY": {
+      "required": ["介護福祉士", "介護職員実務者研修"],
+      "preferred": ["介護職員初任者研修"],
+      "related": ["看護師", "准看護師", "社会福祉士"]
+    },
+    "GROUP_HOME_DISABILITY": {
+      "required": ["介護福祉士"],
+      "preferred": ["介護職員実務者研修", "社会福祉士"],
+      "related": ["介護職員初任者研修", "看護師", "精神保健福祉士"]
+    }
+  }
+}

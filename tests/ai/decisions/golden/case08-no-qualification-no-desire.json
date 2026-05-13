@@ -1,0 +1,497 @@
+[
+  {
+    "category": "HOSPITAL_ACUTE",
+    "score": 63,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 25,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOSPITAL_GENERAL",
+    "score": 56,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 18,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "CLINIC",
+    "score": 48,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 10,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_ELDERLY",
+    "score": 40,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 14,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 15,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "REHAB_DAY",
+    "score": 51,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 13,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE",
+    "score": 57,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 19,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE_PSYCHIATRY",
+    "score": 60,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 22,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_CARE",
+    "score": 53,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 15,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_DISABILITY",
+    "score": 51,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 13,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_DISABILITY",
+    "score": 53,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 15,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "GROUP_HOME_DISABILITY",
+    "score": 68,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 27,
+        "details": {
+          "strokes": {
+            "lastName": 11,
+            "firstName": 12,
+            "total": 23
+          },
+          "grids": {
+            "tenkaku": 11,
+            "jinkaku": 11,
+            "chikaku": 12,
+            "gaikaku": 12,
+            "soukaku": 23
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 30,
+        "details": {
+          "yearElement": "metal",
+          "lifePath": 4
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  }
+]

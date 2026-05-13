@@ -1,0 +1,518 @@
+[
+  {
+    "category": "HOSPITAL_ACUTE",
+    "score": 49,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 19,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOSPITAL_GENERAL",
+    "score": 49,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 19,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "CLINIC",
+    "score": 67,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 30,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "介護福祉士"
+          ]
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_ELDERLY",
+    "score": 56,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 10,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 13,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "介護福祉士",
+            "介護職員実務者研修"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "REHAB_DAY",
+    "score": 75,
+    "rank": "A",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 30,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 18,
+        "details": {
+          "matched": [
+            "介護福祉士"
+          ],
+          "related": [
+            "介護職員実務者研修"
+          ]
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE",
+    "score": 60,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 30,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE_PSYCHIATRY",
+    "score": 48,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 18,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 3,
+        "details": {
+          "matched": [],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_CARE",
+    "score": 65,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 13,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "介護福祉士",
+            "介護職員実務者研修"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_DISABILITY",
+    "score": 77,
+    "rank": "A",
+    "breakdown": {
+      "name": {
+        "value": 19,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 25,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "介護福祉士",
+            "介護職員実務者研修"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_DISABILITY",
+    "score": 61,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 10,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 18,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "介護福祉士",
+            "介護職員実務者研修"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "GROUP_HOME_DISABILITY",
+    "score": 56,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 10,
+        "details": {
+          "strokes": {
+            "lastName": 8,
+            "firstName": 12,
+            "total": 20
+          },
+          "grids": {
+            "tenkaku": 8,
+            "jinkaku": 22,
+            "chikaku": 12,
+            "gaikaku": 0,
+            "soukaku": 20
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 13,
+        "details": {
+          "yearElement": "wood",
+          "lifePath": 7
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "介護福祉士",
+            "介護職員実務者研修"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  }
+]
