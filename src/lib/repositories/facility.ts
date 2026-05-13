@@ -10,6 +10,10 @@ export type UpdateFacilityInput = Omit<Prisma.FacilityUncheckedUpdateInput, "id"
 export type ListFacilitiesInput = {
   category?: FacilityCategory;
   prefecture?: string;
+  /** 市区町村による絞り込み (Phase 4)。部分一致。 */
+  city?: string;
+  /** 施設名 / 住所のフリーテキスト検索 (Phase 4)。AND ではなく OR で当てる。 */
+  q?: string;
   faxPublicOnly?: boolean;
   take?: number;
   skip?: number;
@@ -24,16 +28,41 @@ export function findFacilityById(id: string) {
 }
 
 export function listFacilities(input: ListFacilitiesInput = {}) {
-  const { category, prefecture, faxPublicOnly, take = 50, skip = 0 } = input;
-  return prisma.facility.findMany({
+  const { category, prefecture, city, q, faxPublicOnly, take = 50, skip = 0 } = input;
+  const where: Prisma.FacilityWhereInput = {
+    ...(category ? { category } : {}),
+    ...(prefecture ? { prefecture } : {}),
+    ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
+    ...(faxPublicOnly ? { isFaxPublic: true, fax: { not: null } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { address: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+  return prisma.facility.findMany({ where, orderBy: { createdAt: "desc" }, take, skip });
+}
+
+export function countFacilities(input: ListFacilitiesInput = {}) {
+  const { category, prefecture, city, q, faxPublicOnly } = input;
+  return prisma.facility.count({
     where: {
       ...(category ? { category } : {}),
       ...(prefecture ? { prefecture } : {}),
+      ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
       ...(faxPublicOnly ? { isFaxPublic: true, fax: { not: null } } : {}),
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { address: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
-    orderBy: { createdAt: "desc" },
-    take,
-    skip,
   });
 }
 

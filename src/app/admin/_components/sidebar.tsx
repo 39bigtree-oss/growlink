@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Briefcase,
   Building2,
   LayoutDashboard,
   Send,
@@ -23,6 +24,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: "/admin/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
   { href: "/admin/applicants", label: "申込一覧", icon: Users, cap: "applicants:read" },
+  { href: "/admin/sales", label: "営業フロー", icon: Briefcase, cap: "applicants:read" },
   { href: "/admin/fax-sheets", label: "FAX 送信票", icon: Send, cap: "fax:read" },
   { href: "/admin/facilities", label: "施設マスタ", icon: Building2, cap: "facilities:read" },
   { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },
