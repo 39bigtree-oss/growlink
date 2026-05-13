@@ -114,6 +114,49 @@ async function seedApplicants() {
     },
   });
 
+  // Phase 1-6 のダッシュボード / 一覧画面の見栄えを確保するため、
+  // ステータスごとに分散した架空申込を追加で 12 件投入する。
+  const additional = [
+    { last: "中野", first: "葵", kana: ["ナカノ", "アオイ"], status: ApplicantStatus.INTERVIEW_DONE, q: ["看護師"], dc: ["HOMEVISIT_NURSE"] },
+    { last: "斎藤", first: "美咲", kana: ["サイトウ", "ミサキ"], status: ApplicantStatus.SALES_READY, q: ["看護師", "保健師"], dc: ["HOSPITAL_GENERAL"] },
+    { last: "鈴木", first: "一郎", kana: ["スズキ", "イチロウ"], status: ApplicantStatus.IN_INTRODUCTION, q: ["介護福祉士"], dc: ["DAYCARE_ELDERLY"] },
+    { last: "高橋", first: "あかね", kana: ["タカハシ", "アカネ"], status: ApplicantStatus.CONTRACTED, q: ["看護師"], dc: ["HOMEVISIT_NURSE_PSYCHIATRY"] },
+    { last: "井上", first: "翔", kana: ["イノウエ", "ショウ"], status: ApplicantStatus.REJECTED, q: [], dc: [] },
+    { last: "松本", first: "智子", kana: ["マツモト", "トモコ"], status: ApplicantStatus.RECEIVED, q: ["介護職員初任者研修"], dc: ["HOMEVISIT_CARE"] },
+    { last: "小林", first: "拓也", kana: ["コバヤシ", "タクヤ"], status: ApplicantStatus.RECEIVED, q: ["介護福祉士"], dc: ["GROUP_HOME_DISABILITY"] },
+    { last: "森田", first: "由美", kana: ["モリタ", "ユミ"], status: ApplicantStatus.DIAGNOSED, q: ["看護師"], dc: ["CLINIC"] },
+    { last: "藤井", first: "和也", kana: ["フジイ", "カズヤ"], status: ApplicantStatus.SKILL_SHEET_INPROGRESS, q: ["理学療法士"], dc: ["REHAB_DAY"] },
+    { last: "岡本", first: "麗", kana: ["オカモト", "レイ"], status: ApplicantStatus.SKILL_SHEET_DONE, q: ["看護師"], dc: ["HOSPITAL_ACUTE"] },
+    { last: "中村", first: "結衣", kana: ["ナカムラ", "ユイ"], status: ApplicantStatus.DIAGNOSED, q: ["作業療法士"], dc: ["REHAB_DAY", "HOSPITAL_GENERAL"] },
+    { last: "渡辺", first: "健太", kana: ["ワタナベ", "ケンタ"], status: ApplicantStatus.INTERVIEW_DONE, q: ["介護福祉士", "介護職員実務者研修"], dc: ["HOMEVISIT_CARE", "DAYCARE_ELDERLY"] },
+  ];
+  const now = new Date();
+  for (let i = 0; i < additional.length; i++) {
+    const a = additional[i];
+    const created = new Date(now.getTime() - i * 86_400_000); // 1 日ずつ過去にずらす
+    const email = `anon-bulk-${String(i + 4).padStart(3, "0")}@example.test`;
+    await prisma.applicant.upsert({
+      where: { email },
+      update: {},
+      create: {
+        lastName: a.last,
+        firstName: a.first,
+        lastNameKana: a.kana[0],
+        firstNameKana: a.kana[1],
+        birthDate: new Date(`19${70 + (i % 25)}-0${(i % 9) + 1}-15`),
+        gender: i % 3 === 0 ? Gender.MALE : Gender.FEMALE,
+        email,
+        phone: `+81-90-0000-1${String(100 + i).slice(-3)}`,
+        language: "ja",
+        wantsDiagnosis: a.status !== ApplicantStatus.REJECTED,
+        status: a.status,
+        desiredCategories: a.dc as never,
+        createdAt: created,
+        qualifications: { create: a.q.map((n) => ({ name: n })) },
+      },
+    });
+  }
+
   return { applicant1, applicant2, applicant3 };
 }
 

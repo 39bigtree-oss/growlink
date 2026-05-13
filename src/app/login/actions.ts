@@ -29,7 +29,7 @@ export async function loginWithCredentials(
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo: "/admin/dashboard",
     });
     return { ok: true };
   } catch (error) {
@@ -60,7 +60,7 @@ export async function loginWithMagicLink(
   try {
     await signIn("resend", {
       email: parsed.data.email,
-      redirectTo: "/dashboard",
+      redirectTo: "/admin/dashboard",
     });
     return { ok: true };
   } catch (error) {
