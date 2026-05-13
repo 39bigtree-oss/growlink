@@ -4,6 +4,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { hasCapability } from "@/lib/auth/rbac";
 import { createFaxSheetsBatch } from "@/lib/fax/createFaxSheet";
+import { enqueueJob } from "@/lib/jobs/registry";
 import { recordAuditLog } from "@/lib/repositories/audit-log";
 
 export const runtime = "nodejs";
@@ -46,6 +47,27 @@ export async function POST(req: Request) {
   const applicantId = parsed.data.applicantId;
   const facilityIds =
     "facilityId" in parsed.data ? [parsed.data.facilityId] : parsed.data.facilityIds;
+  const url = new URL(req.url);
+  const isAsync = url.searchParams.get("async") === "1";
+
+  if (isAsync) {
+    const { jobId } = await enqueueJob(
+      "fax",
+      "fax-sheet.batch-create",
+      { applicantId, facilityIds },
+      { target: applicantId, dedupeKey: `fax-batch-${applicantId}-${Date.now()}` },
+    );
+    await recordAuditLog({
+      staffId: session.user.id,
+      action: "fax_sheet.create_queued",
+      target: applicantId,
+      payload: { jobId, count: facilityIds.length },
+    });
+    return NextResponse.json(
+      { ok: true, async: true, jobId, applicantId, count: facilityIds.length },
+      { status: 202 },
+    );
+  }
 
   const { created, errors } = await createFaxSheetsBatch(applicantId, facilityIds);
 

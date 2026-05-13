@@ -21,3 +21,21 @@ registerHandler<{ interviewId: string }>("interview", "interview.finalize", asyn
   const { finalizeInterview } = await import("@/lib/interview/finalizeInterview");
   await finalizeInterview(payload.interviewId);
 });
+
+registerHandler<{ applicantId: string; facilityIds: string[] }>(
+  "fax",
+  "fax-sheet.batch-create",
+  async (payload) => {
+    const { createFaxSheetsBatch } = await import("@/lib/fax/createFaxSheet");
+    await createFaxSheetsBatch(payload.applicantId, payload.facilityIds);
+  },
+);
+
+registerHandler<{ faxSheetId: string; channel: string }>(
+  "fax",
+  "fax-sheet.send",
+  async (payload) => {
+    const { sendFaxSheet } = await import("@/lib/fax/sendFaxSheet");
+    await sendFaxSheet(payload.faxSheetId, payload.channel);
+  },
+);

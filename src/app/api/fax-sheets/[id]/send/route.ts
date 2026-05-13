@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { hasCapability } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
+import { sendFaxSheet } from "@/lib/fax/sendFaxSheet";
+import { enqueueJob } from "@/lib/jobs/registry";
 import { recordAuditLog } from "@/lib/repositories/audit-log";
 
 export const runtime = "nodejs";
@@ -53,28 +55,27 @@ export async function POST(
     );
   }
 
-  // Phase 1-7 はモック。実 FAX/メール送信は Phase 4 以降。
   const provider = process.env.FAX_PROVIDER ?? "mock";
-  if (provider === "mock") {
-    console.log(
-      "[MOCK] FAX を送信しました: ファイル=%s, 宛先=%s (%s), channel=%s, sheetId=%s",
-      sheet.pdfKey,
-      sheet.facility.name,
-      sheet.facility.fax ?? "未登録",
-      parsed.data.channel,
-      sheet.id,
+  const url = new URL(req.url);
+  const isAsync = url.searchParams.get("async") === "1";
+
+  if (isAsync) {
+    const { jobId } = await enqueueJob(
+      "fax",
+      "fax-sheet.send",
+      { faxSheetId: id, channel: parsed.data.channel },
+      { target: id, dedupeKey: `fax-send-${id}` },
     );
+    await recordAuditLog({
+      staffId: session.user.id,
+      action: "fax_sheet.send_queued",
+      target: id,
+      payload: { jobId, channel: parsed.data.channel, provider },
+    });
+    return NextResponse.json({ ok: true, async: true, jobId, id }, { status: 202 });
   }
 
-  const updated = await prisma.faxSheet.update({
-    where: { id },
-    data: {
-      status: "SENT",
-      sentAt: new Date(),
-      channel: parsed.data.channel,
-    },
-  });
-
+  await sendFaxSheet(id, parsed.data.channel);
   await recordAuditLog({
     staffId: session.user.id,
     action: "fax_sheet.send",
@@ -82,13 +83,14 @@ export async function POST(
     payload: { channel: parsed.data.channel, provider },
   });
 
+  const refreshed = await prisma.faxSheet.findUnique({ where: { id } });
   return NextResponse.json(
     {
       ok: true,
-      id: updated.id,
-      status: updated.status,
-      sentAt: updated.sentAt,
-      channel: updated.channel,
+      id,
+      status: refreshed?.status,
+      sentAt: refreshed?.sentAt,
+      channel: refreshed?.channel,
     },
     { status: 200 },
   );

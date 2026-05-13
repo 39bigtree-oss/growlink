@@ -13,7 +13,10 @@ import {
 import { requireAdminSession } from "@/lib/auth/session";
 import { hasCapability } from "@/lib/auth/rbac";
 import { FACILITY_CATEGORY_OPTIONS } from "@/lib/constants/applicant-options";
-import { prisma } from "@/lib/db";
+import { countFacilities, listFacilities } from "@/lib/repositories/facility";
+import type { FacilityCategory } from "@prisma/client";
+
+import { FacilitySearchBar } from "./_search-bar";
 
 export const metadata = { title: "施設マスタ | グロウリンク" };
 export const dynamic = "force-dynamic";
@@ -22,26 +25,55 @@ const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   FACILITY_CATEGORY_OPTIONS.map((o) => [o.value, o.label]),
 );
 
-export default async function FacilitiesListPage() {
+export default async function FacilitiesListPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const staff = await requireAdminSession("facilities:read");
   const canWrite = hasCapability(staff.role, "facilities:write");
-  const facilities = await prisma.facility.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q : undefined;
+  const prefecture = typeof sp.prefecture === "string" ? sp.prefecture : undefined;
+  const city = typeof sp.city === "string" ? sp.city : undefined;
+  const categoryRaw = typeof sp.category === "string" ? sp.category : undefined;
+  const faxOnly = sp.faxOnly === "1";
+  const validCategory = FACILITY_CATEGORY_OPTIONS.some((o) => o.value === categoryRaw)
+    ? (categoryRaw as FacilityCategory)
+    : undefined;
+  const [facilities, total] = await Promise.all([
+    listFacilities({ q, prefecture, city, category: validCategory, faxPublicOnly: faxOnly, take: 100 }),
+    countFacilities({ q, prefecture, city, category: validCategory, faxPublicOnly: faxOnly }),
+  ]);
   return (
     <div className="space-y-5 p-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">施設マスタ</h1>
-          <p className="text-sm text-muted-foreground">{facilities.length} 件 (最大 100 件表示)</p>
+          <p className="text-sm text-muted-foreground">{total} 件中 {facilities.length} 件を表示</p>
         </div>
-        {canWrite && (
-          <Button asChild>
-            <Link href="/admin/facilities/new">新規作成</Link>
-          </Button>
-        )}
+        <div className="space-x-2">
+          {canWrite && (
+            <Button asChild variant="outline">
+              <Link href="/admin/facilities/import">CSV 一括インポート</Link>
+            </Button>
+          )}
+          {canWrite && (
+            <Button asChild>
+              <Link href="/admin/facilities/new">新規作成</Link>
+            </Button>
+          )}
+        </div>
       </header>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">検索 / 絞り込み</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FacilitySearchBar initial={{ q, prefecture, city, category: categoryRaw, faxOnly }} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3">
@@ -63,7 +95,7 @@ export default async function FacilitiesListPage() {
               {facilities.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    施設が登録されていません。
+                    条件に一致する施設がありません。
                   </TableCell>
                 </TableRow>
               ) : (
