@@ -1,82 +1,91 @@
-# グロウリンク AI採用・営業自動化システム
+# グロウリンク AI 採用・営業自動化システム
 
-求職者の Web 申込から AI 適職診断・AI 電話面接・営業用 FAX 送信票生成までを
-一気通貫で行う社内システムです。
+求職者の Web 申込から AI 適職診断 → スキルシート (本人入力 + 履歴書 OCR) → AI 電話面接 → 営業用 FAX 送信票の生成・送信・反応集計までを一気通貫で行う、医療福祉系人材紹介向けの社内システムです。
 
-詳細は次のドキュメントを参照してください。
+すべての外部 API (Claude / Gemini / Twilio / Whisper / TTS / Resend / Document AI / InterFAX) は **mock provider** が同梱されているため、API キーゼロでも一気通貫の動作確認ができます。
 
-- 業務仕様: [`spec.md`](./spec.md)
-- 開発設計: [`design.md`](./design.md)
-- Claude Code 向けコンテキスト: [`CLAUDE.md`](./CLAUDE.md)
+## 機能ハイライト
 
-## 現在のフェーズ
+- ✅ Web 申込フォーム (`/apply` — 4 ステップ + 入力途中保存 + 多言語 5 言語)
+- ✅ AI 適職診断 (11 業態、ランク S/A/B/C/D、PDF 生成)
+- ✅ スキルシート (タブ式入力 + 履歴書 PDF/画像 → OCR → Claude 構造化 → 自動マージ)
+- ✅ AI 電話面接 (5 ターン、Twilio TwiML フロー + 管理者シミュレータ + 文字起こし要約)
+- ✅ FAX 送信票 (A4 2 枚、業態別テンプレ、Mock 送信 + 返信フォーム)
+- ✅ KPI ダッシュボード (8 指標 + 30 日トレンド + 施設別反応率 Top 20)
+- ✅ 営業フローハブ (`/admin/sales` — SALES_READY / IN_INTRODUCTION + 興味あり反応)
+- ✅ 多言語 UI (ja / en / vi / id / zh) + 在留資格管理
+- ✅ ジョブキュー (BullMQ + メモリ provider) で重い処理を非同期化
+- ✅ RBAC (ADMIN / CONSULTANT / SALES / VIEWER) + AuditLog 全記録
+- ✅ レート制限 + CSP + 反応トークン HMAC 署名
 
-**Phase 1-1**: Next.js + Prisma + Auth.js 雛形作成（完了条件: プロジェクト起動 + ログイン可能）。
+## クイックスタート
 
-## セットアップ
+`docs/QUICKSTART.md` をご覧ください。コピペで 5 分以内に起動できます。
 
-### 1. 依存関係インストール
+## 技術スタック
 
-```bash
-pnpm install
-```
+- **Next.js 15** (App Router) + **TypeScript** + **React 19**
+- **Tailwind CSS** + **shadcn/ui** + **Radix UI** + **lucide-react**
+- **Prisma** + **PostgreSQL 16** (`docker compose up -d` 同梱)
+- **Auth.js v5** (Credentials + Magic Link)
+- **AI**: Anthropic Claude (`AI_PROVIDER=anthropic`) / Google Gemini (`AI_PROVIDER=gemini`) / mock
+- **STT**: Whisper / Deepgram (どちらも雛形) / mock
+- **TTS**: ElevenLabs / VOICEVOX / mock
+- **Twilio Programmable Voice** / mock
+- **Resend** / mock (`.storage/sent-emails/*.eml` に書き出し)
+- **BullMQ + Redis** / メモリ provider
+- **次世代 PDF**: `@react-pdf/renderer` + Noto Sans JP
+- **テスト**: Vitest + Playwright + msw
 
-### 2. ローカル DB / Redis 起動
+## ドキュメント
 
-```bash
-docker compose up -d
-```
+| ファイル | 内容 |
+|---|---|
+| [`docs/QUICKSTART.md`](./docs/QUICKSTART.md) | ローカルで 5 分で起動 |
+| [`docs/operations.md`](./docs/operations.md) | 運用マニュアル (KPI / トラブルシュート / 復旧) |
+| [`docs/api.md`](./docs/api.md) | REST API リファレンス |
+| [`docs/providers.md`](./docs/providers.md) | AI / メール / FAX / OCR の本番切替手順 |
+| [`docs/PROGRESS.md`](./docs/PROGRESS.md) | 開発時系列ログ |
+| [`CHANGELOG.md`](./CHANGELOG.md) | リリースノート |
+| [`spec.md`](./spec.md) | 業務仕様 |
+| [`design.md`](./design.md) | 設計書 |
+| [`CLAUDE.md`](./CLAUDE.md) | Claude Code 用コンテキスト |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | 開発参加ガイド |
 
-PostgreSQL 16 と Redis 7 が `localhost:5432` / `localhost:6379` で起動します。
+## デモアカウント
 
-### 3. 環境変数
+`pnpm prisma:seed` で以下が作成されます。**本番環境では必ずパスワードを変更してください**。
 
-```bash
-cp .env.example .env.local
-```
+| ロール | Email | Password | 権限 |
+|---|---|---|---|
+| ADMIN | `admin@growlink.local` | `growlink-admin-pass` | すべて |
+| CONSULTANT | `consultant@growlink.local` | `growlink-consultant-pass` | 申込編集 / 面接 / FAX 作成 |
+| SALES | `sales@growlink.local` | `growlink-sales-pass` | 申込閲覧 / FAX 作成・送信 |
+| VIEWER | `viewer@growlink.local` | `growlink-viewer-pass` | 閲覧のみ |
 
-最低限、`AUTH_SECRET` を生成して書き換えてください。
+`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` 等の env で上書き可能。
 
-```bash
-openssl rand -base64 32
-```
-
-### 4. Prisma マイグレーション + シード
-
-```bash
-pnpm prisma:migrate
-pnpm prisma:seed
-```
-
-シードで作成される初期管理者:
-
-- Email: `admin@growlink.local`（`SEED_ADMIN_EMAIL` で上書き可能）
-- Password: `growlink-admin-pass`（`SEED_ADMIN_PASSWORD` で上書き可能）
-
-### 5. 開発サーバ起動
-
-```bash
-pnpm dev
-```
-
-http://localhost:3000 を開き、`管理画面ログイン` から上記アカウントでログインできることを確認してください。
-
-## ログイン方式
-
-Phase 1-1 では 2 種類の認証を用意しています。
-
-| 方式 | 用途 | 必要設定 |
-|---|---|---|
-| Credentials (Email + Password) | 社内スタッフ用 | DB のみ |
-| Magic Link (Resend) | スタッフ・外部協力者の招待 | `RESEND_API_KEY`（未設定時はコンソール出力にフォールバック） |
-
-## よく使うコマンド
+## AI プロバイダ切替
 
 ```bash
-pnpm dev              # 開発サーバ
-pnpm build            # 本番ビルド
-pnpm typecheck        # tsc --noEmit
-pnpm lint             # next lint
-pnpm test             # vitest
-pnpm prisma:studio    # Prisma Studio
+# デフォルト (課金ゼロ・決定論的)
+AI_PROVIDER=mock
+
+# Anthropic Claude
+AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+MODEL_SMART=claude-sonnet-4-6
+MODEL_FAST=claude-haiku-4-5
+
+# Google Gemini
+AI_PROVIDER=gemini
+GEMINI_API_KEY=...
+GEMINI_MODEL_SMART=gemini-2.5-pro
+GEMINI_MODEL_FAST=gemini-2.5-flash
 ```
+
+詳細は [`docs/providers.md`](./docs/providers.md) を参照。
+
+## ライセンス
+
+[MIT License](./LICENSE) — 商用利用可、無保証。

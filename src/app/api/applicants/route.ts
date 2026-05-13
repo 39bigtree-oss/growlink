@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/email/client";
 import { sendReceiptEmail, sendStaffNotificationEmail } from "@/lib/email/receipt";
 import { buildSkillSheetInviteEmail } from "@/lib/email/templates/skill-sheet-invite";
 import { applicantApiSchema } from "@/lib/schemas/applicant";
+import { ipKey, rateLimit } from "@/lib/security/rate-limit";
 import { verifyRecaptchaToken } from "@/lib/security/recaptcha";
 import {
   buildSkillSheetUrl,
@@ -15,6 +16,15 @@ import {
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  // 同一 IP からの大量申込を防ぐ。5 分で 5 件まで。
+  const limit = rateLimit(ipKey(req, "apply"), 5, 5 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { ok: false, error: "RATE_LIMITED", resetAt: limit.resetAt },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   let payload: unknown;
   try {
     payload = await req.json();

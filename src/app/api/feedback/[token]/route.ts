@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/db";
 import { verifyReactionToken } from "@/lib/fax/reaction-token";
+import { ipKey, rateLimit } from "@/lib/security/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,11 @@ export async function POST(
   ctx: { params: Promise<{ token: string }> },
 ) {
   const { token } = await ctx.params;
+  // 公開エンドポイントなので、同一 IP からのスパムを 30 件 / 1h で制限。
+  const limit = rateLimit(ipKey(req, "feedback"), 30, 60 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json({ ok: false, error: "RATE_LIMITED" }, { status: 429 });
+  }
   const id = verifyReactionToken(token);
   if (!id) {
     return NextResponse.json({ ok: false, error: "INVALID_TOKEN" }, { status: 404 });
