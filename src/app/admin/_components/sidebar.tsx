@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   LayoutDashboard,
+  Send,
   Settings,
   Users,
 } from "lucide-react";
@@ -22,6 +23,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: "/admin/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
   { href: "/admin/applicants", label: "申込一覧", icon: Users, cap: "applicants:read" },
+  { href: "/admin/fax-sheets", label: "FAX 送信票", icon: Send, cap: "fax:read" },
   { href: "/admin/facilities", label: "施設マスタ", icon: Building2, cap: "facilities:read" },
   { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },
 ];

@@ -78,6 +78,9 @@ web_modules/
 .next
 out
 
+# Local PDF/asset storage (Phase 1-7 で導入)
+.storage/
+
 # Nuxt.js build / generate output
 .nuxt
 dist
