@@ -1,0 +1,114 @@
+{
+  "common": {
+    "save": "Simpan",
+    "submit": "Kirim",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "uploading": "Mengunggah...",
+    "saving": "Menyimpan...",
+    "saved": "Tersimpan",
+    "loading": "Memuat...",
+    "required": "Wajib",
+    "optional": "Opsional",
+    "language": "Bahasa",
+    "logo": "Growlink"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "id": "Bahasa Indonesia",
+    "zh": "中文"
+  },
+  "skillSheet": {
+    "pageTitle": "Lembar Keahlian",
+    "intro": "Terima kasih telah mendaftar. Silakan isi lembar keahlian. Anda dapat menyimpan progres.",
+    "expired": "Tautan ini sudah kedaluwarsa atau dicabut. Hubungi konsultan Anda.",
+    "alreadySubmitted": "Lembar Anda sudah dikirim. Untuk koreksi, hubungi konsultan.",
+    "tabs": {
+      "education": "Pendidikan",
+      "career": "Karier",
+      "skills": "Keahlian",
+      "desired": "Preferensi",
+      "selfPR": "Diri",
+      "resume": "Unggah CV"
+    },
+    "education": {
+      "title": "Pendidikan",
+      "addRow": "Tambah",
+      "schoolName": "Sekolah",
+      "department": "Jurusan",
+      "graduatedOn": "Lulus (YYYY-MM)",
+      "remove": "Hapus"
+    },
+    "career": {
+      "title": "Karier",
+      "addRow": "Tambah",
+      "company": "Perusahaan",
+      "role": "Peran",
+      "from": "Mulai (YYYY-MM)",
+      "to": "Selesai (kosong bila aktif)",
+      "achievements": "Pencapaian"
+    },
+    "skills": {
+      "title": "Keahlian",
+      "addRow": "Tambah",
+      "name": "Nama keahlian",
+      "level": "Level (1-5)"
+    },
+    "desired": {
+      "title": "Preferensi",
+      "areas": "Wilayah",
+      "schedule": "Jadwal",
+      "scheduleHint": "mis. 3 hari/minggu, shift siang",
+      "startMonth": "Mulai (YYYY-MM)",
+      "salary": "Gaji harapan (man yen)",
+      "notes": "Lainnya"
+    },
+    "selfPR": {
+      "title": "Tentang diri",
+      "placeholder": "Ceritakan kekuatan Anda hingga 400 karakter.",
+      "remaining": "Sisa {n} karakter"
+    },
+    "resume": {
+      "title": "Unggah CV",
+      "description": "Mendukung PDF/PNG/JPG. AI akan mengekstrak data.",
+      "pickFile": "Pilih berkas",
+      "processing": "Memproses...",
+      "done": "Selesai.",
+      "error": "Gagal.",
+      "tooLarge": "Berkas terlalu besar (maks 10 MB)",
+      "wrongType": "Format tidak didukung"
+    },
+    "actions": {
+      "savePartial": "Simpan draf",
+      "submit": "Kirim lembar",
+      "submitConfirm": "Setelah dikirim tidak bisa diubah. Lanjut?",
+      "submitted": "Terima kasih. Konsultan akan menghubungi."
+    },
+    "validation": { "required": "Wajib", "tooLong": "Terlalu panjang", "invalidDate": "Format tanggal tidak valid" }
+  },
+  "interview": {
+    "pageTitle": "Wawancara AI",
+    "intro": "AI akan menanyakan sekitar 5 pertanyaan singkat (10-15 menit).",
+    "expired": "Tautan kedaluwarsa atau dicabut.",
+    "alreadyCompleted": "Wawancara sudah selesai.",
+    "start": "Mulai wawancara",
+    "ask": "Pertanyaan berikutnya",
+    "answer": "Kirim jawaban",
+    "end": "Akhiri",
+    "endConfirm": "Akhiri wawancara?",
+    "thanks": "Terima kasih.",
+    "yourAnswer": "Jawaban Anda",
+    "ai": "AI",
+    "you": "Anda",
+    "turnLabel": "Pertanyaan {n} / {total}",
+    "progress": "Progres"
+  },
+  "email": {
+    "footer": {
+      "company": "Growlink Inc.",
+      "contact": "Email hanya kirim. Hubungi konsultan untuk pertanyaan."
+    }
+  }
+}

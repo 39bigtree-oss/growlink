@@ -1,0 +1,114 @@
+{
+  "common": {
+    "save": "保存",
+    "submit": "提交",
+    "back": "返回",
+    "next": "下一步",
+    "uploading": "上传中...",
+    "saving": "保存中...",
+    "saved": "已保存",
+    "loading": "加载中...",
+    "required": "必填",
+    "optional": "可选",
+    "language": "语言",
+    "logo": "Growlink"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "id": "Bahasa Indonesia",
+    "zh": "中文"
+  },
+  "skillSheet": {
+    "pageTitle": "技能表",
+    "intro": "感谢申请。请填写技能表,支持中途保存。",
+    "expired": "链接已过期或被撤销。请联系顾问。",
+    "alreadySubmitted": "技能表已提交。如需修改请联系顾问。",
+    "tabs": {
+      "education": "学历",
+      "career": "经历",
+      "skills": "技能",
+      "desired": "期望",
+      "selfPR": "自我介绍",
+      "resume": "上传简历"
+    },
+    "education": {
+      "title": "学历",
+      "addRow": "新增",
+      "schoolName": "学校",
+      "department": "专业",
+      "graduatedOn": "毕业 (YYYY-MM)",
+      "remove": "删除"
+    },
+    "career": {
+      "title": "工作经历",
+      "addRow": "新增",
+      "company": "公司",
+      "role": "职位",
+      "from": "起 (YYYY-MM)",
+      "to": "止 (在职留空)",
+      "achievements": "主要成绩"
+    },
+    "skills": {
+      "title": "技能",
+      "addRow": "新增",
+      "name": "技能名",
+      "level": "等级 (1-5)"
+    },
+    "desired": {
+      "title": "期望条件",
+      "areas": "希望地区",
+      "schedule": "希望勤务形态",
+      "scheduleHint": "例: 每周 3 天 / 白班",
+      "startMonth": "可开始时间 (YYYY-MM)",
+      "salary": "希望年薪 (万円)",
+      "notes": "其他"
+    },
+    "selfPR": {
+      "title": "自我推荐",
+      "placeholder": "请用 400 字以内说明您的优势。",
+      "remaining": "剩余 {n} 字"
+    },
+    "resume": {
+      "title": "上传简历",
+      "description": "支持 PDF/PNG/JPG。AI 会提取学历与经历。",
+      "pickFile": "选择文件",
+      "processing": "处理中...",
+      "done": "完成。",
+      "error": "失败。",
+      "tooLarge": "文件过大 (最大 10MB)",
+      "wrongType": "不支持的格式"
+    },
+    "actions": {
+      "savePartial": "保存草稿",
+      "submit": "提交",
+      "submitConfirm": "提交后无法修改。继续吗?",
+      "submitted": "感谢提交,顾问会与您联系。"
+    },
+    "validation": { "required": "必填", "tooLong": "过长", "invalidDate": "日期格式不正确" }
+  },
+  "interview": {
+    "pageTitle": "AI 面试",
+    "intro": "AI 将进行约 5 个简短问题 (10-15 分钟)。",
+    "expired": "链接已过期或被撤销。",
+    "alreadyCompleted": "面试已完成。",
+    "start": "开始面试",
+    "ask": "下一题",
+    "answer": "提交回答",
+    "end": "结束面试",
+    "endConfirm": "结束面试?",
+    "thanks": "谢谢您的回答。",
+    "yourAnswer": "您的回答",
+    "ai": "AI",
+    "you": "您",
+    "turnLabel": "题 {n} / {total}",
+    "progress": "进度"
+  },
+  "email": {
+    "footer": {
+      "company": "Growlink Inc.",
+      "contact": "本邮件仅供发送,如需咨询请联系顾问。"
+    }
+  }
+}

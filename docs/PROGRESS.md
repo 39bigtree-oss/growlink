@@ -19,6 +19,25 @@
 - 215/215 tests passed、tsc/lint clean
 - main HEAD: `f0f600c`
 
+### ✅ Phase 4 (営業自動化) 完了 — PR #9 マージ済み (`main` HEAD: `175cbbe`)
+
+### ✅ Phase 5 (外国人対応 + 仕上げ) 完了 — `claude/phase-5-i18n-polish`
+
+実装内容:
+- 多言語 (ja/en/vi/id/zh) のメッセージ追加 + SUPPORTED_LOCALES 拡張
+- 在留資格テーブル (ResidenceStatus) + 管理 API (`PUT/DELETE /api/admin/applicants/[id]/residence-status`)
+- AI 面接の母語切替 (interview.next-question + STT mock を 5 言語対応)
+- エラー (`error.tsx` / `global-error.tsx`) / `not-found.tsx` / `loading.tsx`
+- Sentry スタブ (`src/lib/observability/sentry.ts`) + `/api/health`
+- email テンプレは vi/id/zh では ja フォールバック (受信側のメールクライアントで文字化けリスクを避ける選択)
+
+テスト 222 → 240 件 (+18: i18n-5locales / visa-types / stt-mock-multilang / i18n 既存テスト更新)。
+tsc/lint clean。
+
+---
+
+(以降の PR #9 旧本文)
+
 ### ✅ Phase 4 (営業自動化) 完了 — `claude/phase-4-sales-automation`
 
 実装内容:

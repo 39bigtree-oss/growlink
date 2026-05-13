@@ -16,7 +16,7 @@ export type InterviewInviteInput = {
 
 export function buildInterviewInviteEmail(input: InterviewInviteInput): EmailMessage {
   const locale = resolveLocale(input.locale);
-  const t = TEXTS[locale];
+  const t = locale in TEXTS ? TEXTS[locale as keyof typeof TEXTS] : TEXTS.ja;
   const greet = t.greet({ name: `${input.lastName} ${input.firstName}` });
   const bodyText = [greet, "", t.body, "", `${t.linkLabel} ${input.interviewUrl}`, "", t.notice].join("\n");
   const bodyHtml = `

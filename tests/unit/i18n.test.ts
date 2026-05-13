@@ -15,15 +15,22 @@ describe("i18n.resolveLocale", () => {
 
   it("未対応言語は ja にフォールバック", () => {
     expect(resolveLocale("fr")).toBe("ja");
-    expect(resolveLocale("zh-CN")).toBe("ja");
+    expect(resolveLocale("ko-KR")).toBe("ja");
     expect(resolveLocale(null)).toBe("ja");
     expect(resolveLocale(undefined)).toBe("ja");
   });
 
-  it("isSupportedLocale は ja/en のみ true", () => {
+  it("Phase 5 で zh-CN は zh にマッチする", () => {
+    expect(resolveLocale("zh-CN")).toBe("zh");
+  });
+
+  it("isSupportedLocale は ja/en/vi/id/zh で true", () => {
     expect(isSupportedLocale("ja")).toBe(true);
     expect(isSupportedLocale("en")).toBe(true);
-    expect(isSupportedLocale("vi")).toBe(false);
+    expect(isSupportedLocale("vi")).toBe(true);
+    expect(isSupportedLocale("id")).toBe(true);
+    expect(isSupportedLocale("zh")).toBe(true);
+    expect(isSupportedLocale("fr")).toBe(false);
     expect(isSupportedLocale(123)).toBe(false);
   });
 });

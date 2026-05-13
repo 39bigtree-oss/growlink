@@ -20,7 +20,9 @@ export type SkillSheetInviteInput = {
  */
 export function buildSkillSheetInviteEmail(input: SkillSheetInviteInput): EmailMessage {
   const locale = resolveLocale(input.locale);
-  const t = TEXTS[locale];
+  // Phase 5: ja/en 以外 (vi/id/zh) のメール本文はまだ翻訳していないので ja にフォールバック。
+  // 件名・CTA は受信側のメールクライアントで表示される文字列なので、母語崩れリスクを避ける選択。
+  const t = locale in TEXTS ? TEXTS[locale as keyof typeof TEXTS] : TEXTS.ja;
   const greet = t.greet({ name: `${input.lastName} ${input.firstName}` });
 
   const bodyText = [

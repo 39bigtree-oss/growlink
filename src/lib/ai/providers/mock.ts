@@ -251,29 +251,54 @@ type InterviewQuestionPayload = {
   maxTurns: number;
 };
 
-const NEXT_QUESTION_BANK_JA: string[] = [
-  "本日はお時間ありがとうございます。まず簡単に、現在のお仕事と担当業務について教えていただけますか？",
-  "これまでのご経験の中で、ご自身が一番貢献できたと感じる場面はどのようなものでしたか？",
-  "次のお仕事で大切にしたい働き方 (勤務日数や時間帯、夜勤の可否など) を教えてください。",
-  "ご自身の強みと、逆に苦手と感じる業務についてそれぞれ教えていただけますか？",
-  "ここまでで言い残したことや、こちらへのご質問があればお聞かせください。",
-];
-const NEXT_QUESTION_BANK_EN: string[] = [
-  "Thanks for your time today. Could you start by telling me about your current role and main responsibilities?",
-  "Looking back at your career, what is one situation where you contributed the most?",
-  "What kind of work schedule are you hoping for next (days per week, day/night shifts)?",
-  "Could you share your strengths and any areas you'd like more support in?",
-  "Is there anything you'd like to add, or any questions you'd like to ask us?",
-];
+const NEXT_QUESTION_BANK: Record<string, string[]> = {
+  ja: [
+    "本日はお時間ありがとうございます。まず簡単に、現在のお仕事と担当業務について教えていただけますか？",
+    "これまでのご経験の中で、ご自身が一番貢献できたと感じる場面はどのようなものでしたか？",
+    "次のお仕事で大切にしたい働き方 (勤務日数や時間帯、夜勤の可否など) を教えてください。",
+    "ご自身の強みと、逆に苦手と感じる業務についてそれぞれ教えていただけますか？",
+    "ここまでで言い残したことや、こちらへのご質問があればお聞かせください。",
+  ],
+  en: [
+    "Thanks for your time today. Could you start by telling me about your current role and main responsibilities?",
+    "Looking back at your career, what is one situation where you contributed the most?",
+    "What kind of work schedule are you hoping for next (days per week, day/night shifts)?",
+    "Could you share your strengths and any areas you'd like more support in?",
+    "Is there anything you'd like to add, or any questions you'd like to ask us?",
+  ],
+  vi: [
+    "Cảm ơn bạn đã dành thời gian. Đầu tiên, bạn có thể giới thiệu về công việc hiện tại?",
+    "Trong sự nghiệp đã qua, tình huống nào bạn cảm thấy đóng góp nhiều nhất?",
+    "Lịch làm việc bạn mong muốn cho công việc tiếp theo là như thế nào?",
+    "Bạn có thể chia sẻ điểm mạnh và điểm cần hỗ trợ thêm không?",
+    "Bạn còn điều gì muốn chia sẻ hoặc câu hỏi nào cho chúng tôi không?",
+  ],
+  id: [
+    "Terima kasih atas waktunya. Boleh ceritakan singkat tentang pekerjaan Anda saat ini?",
+    "Dari pengalaman karier, situasi apa di mana Anda merasa paling banyak berkontribusi?",
+    "Jadwal kerja seperti apa yang Anda harapkan ke depan?",
+    "Apa kekuatan Anda dan area mana yang ingin Anda kembangkan?",
+    "Adakah hal lain yang ingin Anda sampaikan atau tanyakan kepada kami?",
+  ],
+  zh: [
+    "感谢您抽出时间。首先,请简单介绍一下您目前的工作内容。",
+    "在以往经历中,您觉得自己贡献最大的一次是什么场景?",
+    "下一份工作您希望的工作方式 (天数、班次、夜班) 是怎样的?",
+    "请分别说说您的优势和较弱的方面。",
+    "还有想补充的内容,或者想问我们的问题吗?",
+  ],
+};
+
+const INTENTS = ["アイスブレイク", "経歴深掘り", "希望条件", "強み/苦手", "クロージング"];
 
 function generateInterviewQuestion(payload: InterviewQuestionPayload) {
-  const locale = payload.locale === "en" ? "en" : "ja";
-  const bank = locale === "en" ? NEXT_QUESTION_BANK_EN : NEXT_QUESTION_BANK_JA;
+  const localeKey = payload.locale && NEXT_QUESTION_BANK[payload.locale] ? payload.locale : "ja";
+  const bank = NEXT_QUESTION_BANK[localeKey] ?? NEXT_QUESTION_BANK.ja;
   const turnIndex = Math.max(0, Math.min(bank.length - 1, payload.turnIndex));
   const isLast = turnIndex === Math.max(0, (payload.maxTurns ?? 5) - 1);
   return {
     question: bank[turnIndex],
-    intent: ["アイスブレイク", "経歴深掘り", "希望条件", "強み/苦手", "クロージング"][turnIndex],
+    intent: INTENTS[turnIndex],
     shouldClose: isLast || turnIndex === bank.length - 1,
   };
 }

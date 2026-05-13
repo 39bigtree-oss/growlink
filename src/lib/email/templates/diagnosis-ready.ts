@@ -21,7 +21,7 @@ export type DiagnosisReadyInput = {
 /** AI 適職診断が終わったことを通知し、続けてスキルシートを書いてもらう。 */
 export function buildDiagnosisReadyEmail(input: DiagnosisReadyInput): EmailMessage {
   const locale = resolveLocale(input.locale);
-  const t = TEXTS[locale];
+  const t = locale in TEXTS ? TEXTS[locale as keyof typeof TEXTS] : TEXTS.ja;
   const greet = t.greet({ name: `${input.lastName} ${input.firstName}` });
   const summary = t.summary({ category: input.topCategoryLabel, rank: input.topRank });
   const bodyText = [greet, "", t.intro, "", summary, "", t.next, "", `${t.linkLabel} ${input.skillSheetUrl}`].join("\n");

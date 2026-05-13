@@ -147,6 +147,8 @@ model Applicant {
   phone             String
   nationality       String?
   language          String?            @default("ja")
+  // Phase 5: 在留資格 (1:1)。在留資格を持たない (日本人) 申込は null。
+  residenceStatus   ResidenceStatus?
   // 申込時の希望職種（FacilityCategory の複数選択）。Phase 1-4 の希望整合度スコアで使用。
   desiredCategories FacilityCategory[] @default([])
   wantsDiagnosis    Boolean            @default(true)
@@ -432,4 +434,28 @@ model EmailLog {
   @@index([applicantId])
   @@index([template])
   @@index([status])
+}
+
+// =====================
+// Phase 5: 在留資格 (外国人対応)
+// =====================
+
+// 外国人申込者の在留資格情報。Applicant と 1:1。
+// 個人情報の中でも特に取扱注意なので、別エンティティに分離し権限を絞れるようにする。
+model ResidenceStatus {
+  id          String    @id @default(cuid())
+  applicantId String    @unique
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  // 例: "ENGINEER" / "SSW1_CARE" / "SPECIFIED_SKILLED" / "PERMANENT" / "OTHER" 等
+  visaType    String
+  visaNumber  String?
+  // 有効期限
+  expireAt    DateTime?
+  // 自由記述 (条件付き / 在留期間更新中等)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([visaType])
+  @@index([expireAt])
 }

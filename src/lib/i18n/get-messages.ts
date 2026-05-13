@@ -4,6 +4,9 @@ import { cookies, headers } from "next/headers";
 
 import ja from "@/../messages/ja.json";
 import en from "@/../messages/en.json";
+import vi from "@/../messages/vi.json";
+import id from "@/../messages/id.json";
+import zh from "@/../messages/zh.json";
 
 import {
   DEFAULT_LOCALE,
@@ -12,7 +15,7 @@ import {
   type SupportedLocale,
 } from "./config";
 
-const ALL_MESSAGES: Record<SupportedLocale, Record<string, unknown>> = { ja, en };
+const ALL_MESSAGES: Record<SupportedLocale, Record<string, unknown>> = { ja, en, vi, id, zh };
 
 /**
  * Cookie → Accept-Language → DEFAULT_LOCALE の優先順で locale を解決する。

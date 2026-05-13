@@ -16,7 +16,7 @@ export type SkillSheetReceivedInput = {
 /** スキルシート提出を受け付けたことを求職者へ知らせる。 */
 export function buildSkillSheetReceivedEmail(input: SkillSheetReceivedInput): EmailMessage {
   const locale = resolveLocale(input.locale);
-  const t = TEXTS[locale];
+  const t = locale in TEXTS ? TEXTS[locale as keyof typeof TEXTS] : TEXTS.ja;
   const greet = t.greet({ name: `${input.lastName} ${input.firstName}` });
   const bodyText = [greet, "", t.body].join("\n");
   const bodyHtml = `<p>${nl2br(greet)}</p><p>${nl2br(t.body)}</p>`;
