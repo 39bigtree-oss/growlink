@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-05-14
+
+### Added — Tsumugi ブランド + 本番品質仕上げ
+
+- **プロダクト名「Tsumugi (紡)」採用** — タグライン「AI が、人と現場を丁寧に紡ぐ。」
+- ロゴコンポーネント (`<TsumugiLogo />`) + Footer / Sidebar / Login / メール / FAX PDF を統一
+- ランディングページ `/` を Hero + 機能 8 種 + 利用シーン + Footer の完全構成にリデザイン
+- ログイン画面を 2 カラム + ブランドメッセージで再構築
+- デザイントークン刷新: 深紺 + 生成 + 山吹のブランドカラー、ダークモード、ARIA フォーカス、スキップリンク
+- Toast を skill-sheet の保存・提出に統合 (`silent` フラグで自動保存は無音)
+- `Skeleton` / `EmptyState` 共通コンポーネント
+- ドキュメント大幅追加: `ARCHITECTURE.md` / `SECURITY.md` / `DEPLOY.md` / `TESTING.md` / `BRAND.md`
+
 ## [1.0.0] — 2026-05-13
 
 初版リリース。すべての主要機能を mock provider で完結させ、外部 API キーゼロで動作するベースラインを提供します。
