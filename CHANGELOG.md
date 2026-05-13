@@ -4,6 +4,32 @@
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-05-14
+
+### Changed — 完全社内向け SaaS にリブート
+
+- **トップページ (`/`) を社内営業 LP に刷新**: 求職者向け CTA を削除し、業務フロー 5 ステップ + 機能 8 種を「紹介会社 / 派遣会社」目線で再構成
+- Login / Footer から「求職者として応募」リンクを削除
+- 既存の `/apply` (公開フォーム) は **将来の HP 連動用に残置** (トップ・ログイン画面からは導線なし)
+
+### Added — スタッフ代理登録フロー
+
+- **`/admin/applicants/new`** — スタッフが氏名・連絡先・希望業態・保有資格を 1 画面で代理入力
+- **`POST /api/admin/applicants`** — `applicants:write` 必須、`registerApplicantByStaff` を呼ぶ
+- 登録時に自動で:
+  1. Applicant 作成 (`status=RECEIVED`)
+  2. AI 適職診断を即時実行 (`buildDiagnosis`)
+  3. 診断 PDF を Buffer 生成 (`generateDiagnosisPdfBuffer`)
+  4. **招待メールに診断 PDF を添付** して送信
+  5. `AuditLog` (`applicant.registered_by_staff`) 記録
+
+### Added — メール添付ファイル対応
+
+- `EmailMessage.attachments?: EmailAttachment[]` (filename / content: Buffer / contentType)
+- mock provider: **multipart/mixed** で `.eml` に添付を埋め込む (RFC 2045 base64)
+- resend provider: Resend API の `attachments` フィールドへブリッジ
+- `buildSkillSheetInviteEmail` に attachments を受け渡し可能化、本文に「PDF を添付しました」の一文を自動挿入
+
 ## [1.1.0] — 2026-05-14
 
 ### Added — Tsumugi ブランド + 本番品質仕上げ

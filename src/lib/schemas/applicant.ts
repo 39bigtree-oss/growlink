@@ -88,6 +88,16 @@ export const applicantApiSchema = applicantFormSchema.omit({ agreedToTerms: true
 
 export type ApplicantApiInput = z.infer<typeof applicantApiSchema>;
 
+/**
+ * v1.2: 社内スタッフが求職者を代理登録する API のスキーマ。
+ *  - reCAPTCHA / 利用規約同意は不要 (社内オペレータが代行)
+ *  - 既存の applicantFormSchema からそれらを除外しただけ
+ */
+export const adminApplicantApiSchema = applicantFormSchema.omit({
+  agreedToTerms: true,
+});
+export type AdminApplicantApiInput = z.infer<typeof adminApplicantApiSchema>;
+
 export const APPLICANT_FORM_STEPS = [
   "basic-info",
   "contact",

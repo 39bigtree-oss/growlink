@@ -93,10 +93,6 @@ export default async function LoginPage() {
             <Link href="/" className="hover:text-foreground">
               ← {BRAND.fullName} について
             </Link>
-            <span aria-hidden> · </span>
-            <Link href="/apply" className="hover:text-foreground">
-              求職者として応募する
-            </Link>
           </p>
         </div>
       </div>

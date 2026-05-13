@@ -13,9 +13,6 @@ export function SiteFooter() {
           <span className="hidden text-xs sm:inline">{BRAND.taglineJa}</span>
         </div>
         <nav aria-label="フッターリンク" className="flex flex-wrap items-center gap-4 text-xs">
-          <Link href="/apply" className="hover:text-foreground">
-            求職者として応募
-          </Link>
           <Link href="/login" className="hover:text-foreground">
             管理画面ログイン
           </Link>

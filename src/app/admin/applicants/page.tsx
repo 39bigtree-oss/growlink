@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { FACILITY_CATEGORY_OPTIONS } from "@/lib/constants/applicant-options";
 import { requireAdminSession } from "@/lib/auth/session";
+import { hasCapability } from "@/lib/auth/rbac";
 import {
   ageFromBirthDate,
   parseApplicantListFilter,
@@ -38,7 +39,7 @@ export default async function ApplicantsListPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireAdminSession("applicants:read");
+  const staff = await requireAdminSession("applicants:read");
   const sp = await searchParams;
   const filter = parseApplicantListFilter(sp);
 
@@ -59,11 +60,19 @@ export default async function ApplicantsListPage({
 
   const currentTab: StatusTabValue = (filter.status ?? "ALL") as StatusTabValue;
 
+  const canWrite = hasCapability(staff.role, "applicants:write");
   return (
     <div className="space-y-5 p-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">申込一覧</h1>
-        <p className="text-sm text-muted-foreground">{page.total} 件 (フィルタ適用後)</p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">申込一覧</h1>
+          <p className="text-sm text-muted-foreground">{page.total} 件 (フィルタ適用後)</p>
+        </div>
+        {canWrite && (
+          <Button asChild>
+            <Link href="/admin/applicants/new">+ 求職者を新規登録</Link>
+          </Button>
+        )}
       </header>
 
       <ApplicantsStatusTabs current={currentTab} searchParams={sp} counts={counts} />
