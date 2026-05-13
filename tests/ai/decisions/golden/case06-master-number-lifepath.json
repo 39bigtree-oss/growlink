@@ -1,0 +1,519 @@
+[
+  {
+    "category": "HOSPITAL_ACUTE",
+    "score": 65,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 10,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 15,
+        "details": {
+          "matchType": "exact"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOSPITAL_GENERAL",
+    "score": 65,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 17,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 8,
+        "details": {
+          "matchType": "adjacent"
+        }
+      }
+    }
+  },
+  {
+    "category": "CLINIC",
+    "score": 64,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 22,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_ELDERLY",
+    "score": 55,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 28,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "看護師"
+          ]
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "REHAB_DAY",
+    "score": 50,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 15,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 18,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE",
+    "score": 70,
+    "rank": "A",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 28,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_NURSE_PSYCHIATRY",
+    "score": 72,
+    "rank": "A",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 30,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 25,
+        "details": {
+          "matched": [
+            "看護師"
+          ],
+          "related": []
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_CARE",
+    "score": 55,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 28,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "看護師"
+          ]
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "DAYCARE_DISABILITY",
+    "score": 51,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 24,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "看護師"
+          ]
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "HOMEVISIT_DISABILITY",
+    "score": 55,
+    "rank": "B",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 28,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "看護師"
+          ]
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  },
+  {
+    "category": "GROUP_HOME_DISABILITY",
+    "score": 44,
+    "rank": "C",
+    "breakdown": {
+      "name": {
+        "value": 15,
+        "details": {
+          "strokes": {
+            "lastName": 25,
+            "firstName": 8,
+            "total": 33
+          },
+          "grids": {
+            "tenkaku": 25,
+            "jinkaku": 27,
+            "chikaku": 8,
+            "gaikaku": 6,
+            "soukaku": 33
+          },
+          "fellOff": false
+        }
+      },
+      "birth": {
+        "value": 17,
+        "details": {
+          "yearElement": "water",
+          "lifePath": 11
+        }
+      },
+      "qualification": {
+        "value": 10,
+        "details": {
+          "matched": [],
+          "related": [
+            "看護師"
+          ]
+        }
+      },
+      "desire": {
+        "value": 2,
+        "details": {
+          "matchType": "none"
+        }
+      }
+    }
+  }
+]

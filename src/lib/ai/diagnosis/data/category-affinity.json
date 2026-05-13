@@ -1,0 +1,93 @@
+{
+  "_comment": "業態カテゴリごとの『どんな性格・傾向の人が向いているか』を、姓名判断 (人格画数)・五行・数秘術 (Life Path) と紐付けたテーブル。配点はすべて 0-1 で正規化済み。Phase 1-5 で Claude へのコメント生成プロンプトでもこの構造を参照する想定。",
+  "categories": {
+    "HOSPITAL_ACUTE": {
+      "title": "急性期病院",
+      "personalityKeywords": ["決断力", "迅速", "リーダーシップ", "プレッシャー耐性"],
+      "favoredJinkaku": [3, 5, 11, 13, 15, 16, 21, 23, 24, 31, 33],
+      "favoredElements": ["fire", "metal"],
+      "favoredLifePath": [1, 3, 5, 8],
+      "adjacent": ["HOSPITAL_GENERAL"]
+    },
+    "HOSPITAL_GENERAL": {
+      "title": "総合病院",
+      "personalityKeywords": ["協調", "幅広さ", "学習意欲", "実直"],
+      "favoredJinkaku": [5, 6, 7, 8, 11, 13, 15, 16, 17, 21, 24, 31, 32],
+      "favoredElements": ["earth", "fire"],
+      "favoredLifePath": [2, 4, 6, 8],
+      "adjacent": ["HOSPITAL_ACUTE", "CLINIC"]
+    },
+    "CLINIC": {
+      "title": "外来クリニック",
+      "personalityKeywords": ["対話", "段取り", "丁寧"],
+      "favoredJinkaku": [6, 7, 11, 15, 16, 17, 18, 23, 24, 25, 31, 32],
+      "favoredElements": ["earth", "wood"],
+      "favoredLifePath": [2, 6, 7, 9],
+      "adjacent": ["HOSPITAL_GENERAL", "HOMEVISIT_NURSE"]
+    },
+    "DAYCARE_ELDERLY": {
+      "title": "デイサービス（高齢者）",
+      "personalityKeywords": ["朗らか", "受容", "場づくり"],
+      "favoredJinkaku": [5, 6, 7, 8, 15, 16, 17, 24, 25, 31, 32, 35],
+      "favoredElements": ["earth", "water"],
+      "favoredLifePath": [2, 6, 9],
+      "adjacent": ["REHAB_DAY", "DAYCARE_DISABILITY"]
+    },
+    "REHAB_DAY": {
+      "title": "通所リハビリ",
+      "personalityKeywords": ["伴走", "継続", "達成支援"],
+      "favoredJinkaku": [5, 6, 11, 15, 16, 21, 23, 24, 25, 31, 33, 37],
+      "favoredElements": ["wood", "earth"],
+      "favoredLifePath": [3, 6, 7, 9],
+      "adjacent": ["DAYCARE_ELDERLY", "HOSPITAL_GENERAL"]
+    },
+    "HOMEVISIT_NURSE": {
+      "title": "訪問看護（一般）",
+      "personalityKeywords": ["自律", "観察", "家族対応", "段取り"],
+      "favoredJinkaku": [6, 7, 11, 13, 15, 16, 17, 18, 23, 24, 25, 31, 32],
+      "favoredElements": ["water", "wood"],
+      "favoredLifePath": [2, 5, 7, 9],
+      "adjacent": ["HOMEVISIT_NURSE_PSYCHIATRY", "HOMEVISIT_CARE", "CLINIC"]
+    },
+    "HOMEVISIT_NURSE_PSYCHIATRY": {
+      "title": "精神科訪問看護",
+      "personalityKeywords": ["傾聴", "境界線", "持続性"],
+      "favoredJinkaku": [7, 11, 15, 16, 17, 18, 23, 24, 25, 31, 32, 35, 37],
+      "favoredElements": ["water", "metal"],
+      "favoredLifePath": [2, 7, 9, 11],
+      "adjacent": ["HOMEVISIT_NURSE"]
+    },
+    "HOMEVISIT_CARE": {
+      "title": "訪問介護",
+      "personalityKeywords": ["柔軟", "気配り", "段取り"],
+      "favoredJinkaku": [5, 6, 7, 8, 11, 15, 16, 17, 21, 24, 31, 32],
+      "favoredElements": ["earth", "water"],
+      "favoredLifePath": [2, 6, 8, 9],
+      "adjacent": ["HOMEVISIT_NURSE", "DAYCARE_ELDERLY", "HOMEVISIT_DISABILITY"]
+    },
+    "DAYCARE_DISABILITY": {
+      "title": "障害者デイサービス",
+      "personalityKeywords": ["共感", "創意", "場づくり"],
+      "favoredJinkaku": [3, 5, 6, 8, 11, 15, 16, 17, 21, 24, 25, 32, 33, 35],
+      "favoredElements": ["wood", "earth"],
+      "favoredLifePath": [3, 6, 9, 11],
+      "adjacent": ["DAYCARE_ELDERLY", "GROUP_HOME_DISABILITY"]
+    },
+    "HOMEVISIT_DISABILITY": {
+      "title": "障害者向け訪問介護",
+      "personalityKeywords": ["観察", "柔軟", "ご家族との関係"],
+      "favoredJinkaku": [5, 6, 7, 11, 15, 16, 17, 18, 24, 25, 31, 32],
+      "favoredElements": ["water", "earth"],
+      "favoredLifePath": [2, 6, 7, 9],
+      "adjacent": ["HOMEVISIT_CARE", "GROUP_HOME_DISABILITY"]
+    },
+    "GROUP_HOME_DISABILITY": {
+      "title": "グループホーム（障害）",
+      "personalityKeywords": ["長期伴走", "規律", "場の運営"],
+      "favoredJinkaku": [6, 7, 11, 15, 16, 17, 24, 25, 31, 32, 33, 35, 37],
+      "favoredElements": ["earth", "metal"],
+      "favoredLifePath": [2, 4, 6, 9, 22],
+      "adjacent": ["DAYCARE_DISABILITY", "HOMEVISIT_DISABILITY"]
+    }
+  }
+}
