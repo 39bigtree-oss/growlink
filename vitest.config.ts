@@ -8,8 +8,10 @@ export default defineConfig({
     exclude: ["tests/e2e/**", "node_modules/**", ".next/**"],
   },
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      // server-only ガードはテストでは不要なので空モジュールに差し替える。
+      { find: "server-only", replacement: path.resolve(__dirname, "./tests/shims/server-only.ts") },
+    ],
   },
 });
