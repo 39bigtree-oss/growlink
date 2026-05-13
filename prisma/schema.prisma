@@ -136,27 +136,29 @@ model Staff {
 // =====================
 
 model Applicant {
-  id             String          @id @default(cuid())
-  lastName       String
-  firstName      String
-  lastNameKana   String
-  firstNameKana  String
-  birthDate      DateTime
-  gender         Gender
-  email          String          @unique
-  phone          String
-  nationality    String?
-  language       String?         @default("ja")
-  wantsDiagnosis Boolean         @default(true)
-  status         ApplicantStatus @default(RECEIVED)
-  qualifications Qualification[]
-  diagnoses      Diagnosis[]
-  skillSheet     SkillSheet?
-  interview      Interview?
-  faxSheets      FaxSheet[]
-  deletedAt      DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                String             @id @default(cuid())
+  lastName          String
+  firstName         String
+  lastNameKana      String
+  firstNameKana     String
+  birthDate         DateTime
+  gender            Gender
+  email             String             @unique
+  phone             String
+  nationality       String?
+  language          String?            @default("ja")
+  // 申込時の希望職種（FacilityCategory の複数選択）。Phase 1-4 の希望整合度スコアで使用。
+  desiredCategories FacilityCategory[] @default([])
+  wantsDiagnosis    Boolean            @default(true)
+  status            ApplicantStatus    @default(RECEIVED)
+  qualifications    Qualification[]
+  diagnoses         Diagnosis[]
+  skillSheet        SkillSheet?
+  interview         Interview?
+  faxSheets         FaxSheet[]
+  deletedAt         DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@index([status])
   @@index([deletedAt])
