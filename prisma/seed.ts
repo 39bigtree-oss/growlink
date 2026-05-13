@@ -243,7 +243,6 @@ async function seedInterview(applicantId: string) {
 async function seedFacilities() {
   const data = [
     {
-      key: "fac-anon-001",
       name: "架空訪問看護ステーションあおぞら",
       category: FacilityCategory.HOMEVISIT_NURSE,
       prefecture: "東京都",
@@ -255,7 +254,6 @@ async function seedFacilities() {
       notes: "seed: 訪問看護・日勤中心",
     },
     {
-      key: "fac-anon-002",
       name: "架空デイサービスひだまり",
       category: FacilityCategory.DAYCARE_ELDERLY,
       prefecture: "神奈川県",
@@ -267,7 +265,6 @@ async function seedFacilities() {
       notes: "seed: 高齢者デイ",
     },
     {
-      key: "fac-anon-003",
       name: "架空グループホームひまわり",
       category: FacilityCategory.GROUP_HOME_DISABILITY,
       prefecture: "千葉県",
