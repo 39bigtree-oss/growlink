@@ -1,5 +1,4 @@
-// Phase 1-1: Auth.js 関連テーブル + Staff モデルのみ。
-// Applicant / Diagnosis / Facility 等のドメインモデルは Phase 1-2 で追加する。
+// Phase 1-2: ドメインモデルを追加。Auth.js テーブルは Phase 1-1 から維持。
 
 generator client {
   provider = "prisma-client-js"
@@ -10,6 +9,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =====================
+// Enums
+// =====================
+
 enum StaffRole {
   ADMIN
   CONSULTANT
@@ -17,8 +20,51 @@ enum StaffRole {
   VIEWER
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Rank {
+  S
+  A
+  B
+  C
+  D
+}
+
+enum ApplicantStatus {
+  RECEIVED
+  DIAGNOSED
+  SKILL_SHEET_INPROGRESS
+  SKILL_SHEET_DONE
+  INTERVIEW_DONE
+  SALES_READY
+  IN_INTRODUCTION
+  CONTRACTED
+  REJECTED
+}
+
+enum FacilityCategory {
+  HOSPITAL_ACUTE
+  HOSPITAL_GENERAL
+  CLINIC
+  DAYCARE_ELDERLY
+  REHAB_DAY
+  HOMEVISIT_NURSE
+  HOMEVISIT_NURSE_PSYCHIATRY
+  HOMEVISIT_CARE
+  DAYCARE_DISABILITY
+  HOMEVISIT_DISABILITY
+  GROUP_HOME_DISABILITY
+}
+
+// =====================
 // Auth.js (NextAuth v5) 標準スキーマ
 // 参考: https://authjs.dev/getting-started/adapters/prisma
+// =====================
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -68,14 +114,176 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// =====================
+// 社内スタッフ
+// =====================
+
 // 社内スタッフの業務属性。User と 1:1。
 model Staff {
-  id        String    @id @default(cuid())
-  userId    String    @unique
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email     String    @unique
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String     @unique
   name      String
-  role      StaffRole @default(VIEWER)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  role      StaffRole  @default(VIEWER)
+  auditLogs AuditLog[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// =====================
+// 求職者ドメイン
+// =====================
+
+model Applicant {
+  id             String          @id @default(cuid())
+  lastName       String
+  firstName      String
+  lastNameKana   String
+  firstNameKana  String
+  birthDate      DateTime
+  gender         Gender
+  email          String          @unique
+  phone          String
+  nationality    String?
+  language       String?         @default("ja")
+  wantsDiagnosis Boolean         @default(true)
+  status         ApplicantStatus @default(RECEIVED)
+  qualifications Qualification[]
+  diagnoses      Diagnosis[]
+  skillSheet     SkillSheet?
+  interview      Interview?
+  faxSheets      FaxSheet[]
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([status])
+  @@index([deletedAt])
+  @@index([createdAt])
+}
+
+model Qualification {
+  id          String    @id @default(cuid())
+  applicantId String
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  name        String
+  acquiredOn  DateTime?
+  number      String?
+
+  @@index([applicantId])
+}
+
+model Diagnosis {
+  id          String           @id @default(cuid())
+  applicantId String
+  applicant   Applicant        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  category    FacilityCategory
+  score       Int
+  rank        Rank
+  proComment  String
+  conComment  String
+  generatedAt DateTime         @default(now())
+
+  @@unique([applicantId, category])
+  @@index([rank])
+}
+
+model SkillSheet {
+  id           String    @id @default(cuid())
+  applicantId  String    @unique
+  applicant    Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  educations   Json
+  careers      Json
+  skills       Json
+  desired      Json
+  selfPR       String?
+  rawResumeKey String?
+  completedAt  DateTime?
+  updatedAt    DateTime  @updatedAt
+}
+
+model Interview {
+  id          String    @id @default(cuid())
+  applicantId String    @unique
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  callSid     String?
+  startedAt   DateTime?
+  endedAt     DateTime?
+  durationSec Int?
+  transcript  String?
+  summary     Json?
+  audioKey    String?
+}
+
+// =====================
+// 求人施設・営業ドメイン
+// =====================
+
+model Facility {
+  id          String           @id @default(cuid())
+  name        String
+  category    FacilityCategory
+  prefecture  String
+  city        String
+  address     String
+  fax         String?
+  email       String?
+  isFaxPublic Boolean          @default(false)
+  notes       String?
+  faxSheets   FaxSheet[]
+  reactions   FaxReaction[]
+  createdAt   DateTime         @default(now())
+
+  @@index([category])
+  @@index([prefecture])
+}
+
+model FaxSheet {
+  id          String       @id @default(cuid())
+  applicantId String
+  facilityId  String
+  applicant   Applicant    @relation(fields: [applicantId], references: [id])
+  facility    Facility     @relation(fields: [facilityId], references: [id])
+  pdfKey      String
+  sentAt      DateTime?
+  channel     String // "FAX" | "EMAIL"
+  status      String // "PENDING" | "SENT" | "FAILED"
+  reaction    FaxReaction?
+  createdAt   DateTime     @default(now())
+
+  @@index([applicantId])
+  @@index([facilityId])
+  @@index([status])
+}
+
+model FaxReaction {
+  id         String   @id @default(cuid())
+  faxSheetId String   @unique
+  facilityId String
+  faxSheet   FaxSheet @relation(fields: [faxSheetId], references: [id], onDelete: Cascade)
+  facility   Facility @relation(fields: [facilityId], references: [id])
+  interested Boolean
+  comment    String?
+  receivedAt DateTime @default(now())
+
+  @@index([facilityId])
+}
+
+// =====================
+// 監査ログ
+// =====================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  staffId   String?
+  staff     Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  action    String
+  target    String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([staffId])
+  @@index([createdAt])
+  @@index([action])
 }
