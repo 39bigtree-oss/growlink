@@ -158,14 +158,14 @@ export function FaxSheetDocument(input: FaxSheetPdfInput): React.ReactElement<Do
     <Document
       title="FAX 送信票"
       author={input.organization.name}
-      creator="Growlink"
-      producer="Growlink"
+      creator="Tsumugi (運営: 株式会社グロウリンク)"
+      producer="Tsumugi"
     >
       {/* 1 枚目 — 表紙兼提案書 */}
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>GROWLINK</Text>
+            <Text style={styles.logoText}>TSUMUGI</Text>
           </View>
           <View style={styles.meta}>
             <Text>送信日時: {dateStr}</Text>
@@ -265,7 +265,7 @@ export function FaxSheetDocument(input: FaxSheetPdfInput): React.ReactElement<Do
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>GROWLINK</Text>
+            <Text style={styles.logoText}>TSUMUGI</Text>
           </View>
           <View style={styles.meta}>
             <Text>送信日時: {dateStr}</Text>

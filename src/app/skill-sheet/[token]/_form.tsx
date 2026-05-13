@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { type SupportedLocale } from "@/lib/i18n/config";
 import type { SkillSheetContent } from "@/lib/schemas/skill-sheet";
 
@@ -65,6 +66,7 @@ export function SkillSheetForm({
 }) {
   const [currentLocale, setCurrentLocale] = useState<SupportedLocale>(locale);
   const t = useMemo(() => buildT(MESSAGES[currentLocale] ?? MESSAGES.ja), [currentLocale]);
+  const { toast } = useToast();
   const [data, setData] = useState<SkillSheetContent>(initial);
   const [tab, setTab] = useState<string>("education");
   const [saving, setSaving] = useState(false);
@@ -78,7 +80,7 @@ export function SkillSheetForm({
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  async function save(): Promise<boolean> {
+  async function save(opts: { silent?: boolean } = {}): Promise<boolean> {
     setSaving(true);
     try {
       const res = await fetch(`/api/skill-sheet/${encodeURIComponent(token)}/save`, {
@@ -86,9 +88,17 @@ export function SkillSheetForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        if (!opts.silent) {
+          toast({ title: t("common.loading"), description: `HTTP ${res.status}`, variant: "destructive" });
+        }
+        return false;
+      }
       const body = (await res.json()) as { savedAt: string };
       setSavedAt(body.savedAt);
+      if (!opts.silent) {
+        toast({ title: t("common.saved"), variant: "success" });
+      }
       return true;
     } finally {
       setSaving(false);
@@ -152,7 +162,7 @@ export function SkillSheetForm({
   useEffect(() => {
     if (submitted) return;
     const id = setInterval(() => {
-      if (!saving) void save();
+      if (!saving) void save({ silent: true });
     }, 30_000);
     return () => clearInterval(id);
     // dataはdepにいれない (ループ防止)。setInterval 内が最新の closure を参照する形にする。
@@ -571,7 +581,7 @@ export function SkillSheetForm({
       </Tabs>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-end gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-        <Button type="button" variant="outline" onClick={save} disabled={saving}>
+        <Button type="button" variant="outline" onClick={() => save()} disabled={saving}>
           {saving ? t("common.saving") : t("skillSheet.actions.savePartial")}
         </Button>
         <Button type="button" onClick={() => setSubmitOpen(true)}>

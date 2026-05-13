@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { TsumugiLogo } from "@/components/brand/logo";
 import { hasCapability, type AdminCapability } from "@/lib/auth/rbac";
 
 type NavItem = {
@@ -36,10 +37,10 @@ export function AdminSidebar({ role }: { role: string }) {
   return (
     <aside className="hidden w-56 shrink-0 border-r bg-muted/30 md:flex md:flex-col">
       <div className="px-4 py-5">
-        <Link href="/admin/dashboard" className="text-sm font-bold tracking-widest">
-          GROWLINK
+        <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
+          <TsumugiLogo withWordmark wordmarkClassName="text-sm" />
         </Link>
-        <p className="mt-0.5 text-xs text-muted-foreground">管理画面</p>
+        <p className="mt-1 text-xs text-muted-foreground">管理画面</p>
       </div>
       <nav className="flex-1 space-y-1 px-2 pb-4">
         {items.map((item) => {

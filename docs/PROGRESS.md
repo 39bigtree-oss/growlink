@@ -21,6 +21,25 @@
 
 ### ✅ Phase 4 (営業自動化) 完了 — PR #9 マージ済み (`main` HEAD: `175cbbe`)
 
+### ✅ v1.1 Tsumugi ブランド + 本番品質仕上げ — `claude/v1.1-tsumugi-brand`
+
+実装内容:
+
+- **プロダクト名「Tsumugi (紡)」採用** — タグライン「AI が、人と現場を丁寧に紡ぐ。」、運営は引き続き株式会社グロウリンク
+- ブランド定数を `src/lib/brand.ts` に集約 → metadata / OpenGraph / メール / PDF / Sidebar / Footer に統一適用
+- `<TsumugiLogo />` SVG ロゴコンポーネント (角丸藍 + 山吹 / 生成の糸)
+- ランディングページ `/` を Hero + 機能 8 種 + 利用シーン 2 ブロック + Footer の完全構成にリデザイン (a11y skip-link 込み)
+- ログイン画面を 2 カラム (ブランド + フォーム) に再構築
+- デザイントークン刷新 (深紺 + 生成 + 山吹) + ダークモード対応 + フォーカスリング + スクロールバー
+- Toast を skill-sheet の手動保存・提出に統合 (silent フラグで自動保存は無音)
+- `Skeleton` / `EmptyState` 共通コンポーネント
+- ドキュメント大幅追加: `ARCHITECTURE.md` / `SECURITY.md` / `DEPLOY.md` / `TESTING.md` / `BRAND.md` (+ README / CHANGELOG 全面刷新)
+
+テスト 245 → 249 件 (+4: BRAND + landing E2E)。
+tsc/lint clean、249/249 passed。
+
+---
+
 ### ✅ v1-final-polish 完了 — `claude/v1-final-polish` (PR #11 予定)
 
 実装内容:
