@@ -21,6 +21,25 @@
 
 ### ✅ Phase 4 (営業自動化) 完了 — PR #9 マージ済み (`main` HEAD: `175cbbe`)
 
+### ✅ v1-final-polish 完了 — `claude/v1-final-polish` (PR #11 予定)
+
+実装内容:
+- Gemini プロバイダ (`AI_PROVIDER=gemini` + `@google/generative-ai`)
+- Toast コンポーネント + `ToastProvider` を root layout に
+- レート制限 (memory bucket、ipKey ヘルパ) を /apply と /feedback に適用
+- CSP / X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy
+- 文書一式: README 刷新、QUICKSTART, operations, api, providers, CHANGELOG, RELEASE_NOTES, LICENSE, CONTRIBUTING
+- デモシード拡張 (CONSULTANT/SALES/VIEWER 各 1 名 + 申込 6 件 + 施設 18 件)
+- `scripts/backup-db.sh` (pg_dump → gz、7 日超は削除)
+- `tests/e2e/{feedback,health,not-found,login,skill-sheet-link}.spec.ts` (+5)
+- `.github/workflows/ci.yml` (lint + typecheck + test + next build)
+- PR テンプレ + Issue テンプレ + CONTRIBUTING
+
+テスト 240 → 245 件 (+5: gemini-provider + rate-limit)。
+tsc/lint clean。
+
+---
+
 ### ✅ Phase 5 (外国人対応 + 仕上げ) 完了 — `claude/phase-5-i18n-polish`
 
 実装内容:

@@ -1,5 +1,5 @@
 /**
- * AI provider 共通インターフェース。AI_PROVIDER (mock | anthropic) で実体が切り替わる。
+ * AI provider 共通インターフェース。AI_PROVIDER (mock | anthropic | gemini) で実体が切り替わる。
  *
  * server-only マーカーは付けていない (テスト用 tsx スクリプトから直接呼べるように)。
  * Prisma を触る上位レイヤ (buildDiagnosis 等) で server-only を担保する。
@@ -44,6 +44,9 @@ async function resolveProvider(): Promise<Provider> {
   if (name === "anthropic") {
     const mod = await import("./providers/anthropic");
     cachedProvider = mod.anthropicProvider;
+  } else if (name === "gemini") {
+    const mod = await import("./providers/gemini");
+    cachedProvider = mod.geminiProvider;
   } else {
     const mod = await import("./providers/mock");
     cachedProvider = mod.mockProvider;

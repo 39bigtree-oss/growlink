@@ -330,8 +330,122 @@ async function seedAuditLog(staffId: string) {
   });
 }
 
+/**
+ * v1 final: ADMIN 以外のロールにもデモアカウントを用意。README に記載のパスワードと一致させる。
+ */
+async function seedDemoStaff() {
+  const demoUsers: Array<{ email: string; password: string; name: string; role: StaffRole }> = [
+    { email: "consultant@growlink.local", password: "growlink-consultant-pass", name: "デモ コンサル", role: StaffRole.CONSULTANT },
+    { email: "sales@growlink.local", password: "growlink-sales-pass", name: "デモ 営業", role: StaffRole.SALES },
+    { email: "viewer@growlink.local", password: "growlink-viewer-pass", name: "デモ ビューア", role: StaffRole.VIEWER },
+  ];
+  for (const u of demoUsers) {
+    const passwordHash = await bcrypt.hash(u.password, 12);
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: { passwordHash },
+      create: { email: u.email, name: u.name, passwordHash, emailVerified: new Date() },
+    });
+    await prisma.staff.upsert({
+      where: { userId: user.id },
+      update: { role: u.role, name: u.name, email: u.email },
+      create: { userId: user.id, email: u.email, name: u.name, role: u.role },
+    });
+    console.log(`Seeded demo staff: ${u.email} (${u.role})`);
+  }
+}
+
+/**
+ * v1 final: 業務感を出すための追加サンプル申込 (架空 6 名)。実 PII を絶対に含めない。
+ * 各 status を散らし、ダッシュボードの「ステータス別件数」がそれっぽく見えるようにする。
+ */
+async function seedExtraApplicants() {
+  const samples: Array<{
+    email: string;
+    lastName: string;
+    firstName: string;
+    lastNameKana: string;
+    firstNameKana: string;
+    birthDate: string;
+    gender: Gender;
+    status: ApplicantStatus;
+    nationality?: string;
+    language?: string;
+    desired: FacilityCategory[];
+    qualifications: string[];
+  }> = [
+    { email: "anon-nurse-003@example.test", lastName: "佐藤", firstName: "美咲", lastNameKana: "サトウ", firstNameKana: "ミサキ", birthDate: "1988-08-23", gender: Gender.FEMALE, status: ApplicantStatus.SKILL_SHEET_INPROGRESS, desired: [FacilityCategory.HOMEVISIT_NURSE], qualifications: ["看護師"] },
+    { email: "anon-careworker-004@example.test", lastName: "鈴木", firstName: "大輔", lastNameKana: "スズキ", firstNameKana: "ダイスケ", birthDate: "1995-11-02", gender: Gender.MALE, status: ApplicantStatus.SKILL_SHEET_DONE, desired: [FacilityCategory.DAYCARE_ELDERLY], qualifications: ["介護福祉士"] },
+    { email: "anon-nurse-vi-005@example.test", lastName: "Le", firstName: "Thi An", lastNameKana: "レ", firstNameKana: "ティ アン", birthDate: "1993-09-15", gender: Gender.FEMALE, status: ApplicantStatus.INTERVIEW_DONE, nationality: "VN", language: "vi", desired: [FacilityCategory.DAYCARE_ELDERLY, FacilityCategory.HOMEVISIT_CARE], qualifications: ["介護福祉士 (特定技能)"] },
+    { email: "anon-nurse-006@example.test", lastName: "高橋", firstName: "翔", lastNameKana: "タカハシ", firstNameKana: "ショウ", birthDate: "1985-02-09", gender: Gender.MALE, status: ApplicantStatus.SALES_READY, desired: [FacilityCategory.HOSPITAL_GENERAL], qualifications: ["看護師", "保健師"] },
+    { email: "anon-nurse-007@example.test", lastName: "山本", firstName: "あかり", lastNameKana: "ヤマモト", firstNameKana: "アカリ", birthDate: "1997-06-30", gender: Gender.FEMALE, status: ApplicantStatus.IN_INTRODUCTION, desired: [FacilityCategory.CLINIC], qualifications: ["看護師"] },
+    { email: "anon-careworker-008@example.test", lastName: "田中", firstName: "誠", lastNameKana: "タナカ", firstNameKana: "マコト", birthDate: "1982-12-04", gender: Gender.MALE, status: ApplicantStatus.CONTRACTED, desired: [FacilityCategory.HOMEVISIT_NURSE_PSYCHIATRY], qualifications: ["精神保健福祉士"] },
+  ];
+  const out = [] as Array<{ id: string; email: string }>;
+  for (const s of samples) {
+    const ap = await prisma.applicant.upsert({
+      where: { email: s.email },
+      update: { status: s.status },
+      create: {
+        lastName: s.lastName,
+        firstName: s.firstName,
+        lastNameKana: s.lastNameKana,
+        firstNameKana: s.firstNameKana,
+        birthDate: new Date(s.birthDate),
+        gender: s.gender,
+        email: s.email,
+        phone: "+81-90-0000-0000",
+        nationality: s.nationality ?? null,
+        language: s.language ?? "ja",
+        wantsDiagnosis: true,
+        desiredCategories: s.desired,
+        status: s.status,
+        qualifications: { create: s.qualifications.map((name) => ({ name })) },
+      },
+    });
+    out.push({ id: ap.id, email: ap.email });
+  }
+  console.log(`Seeded ${out.length} extra applicants`);
+  return out;
+}
+
+/**
+ * v1 final: 50 件規模に近づけるための追加施設 (架空 18 件)。CSV インポートの動作確認も兼ねる。
+ */
+async function seedExtraFacilities() {
+  const samples = [
+    { name: "(架空) みやこ訪問看護", category: FacilityCategory.HOMEVISIT_NURSE, prefecture: "京都府", city: "京都市中京区", address: "三条0-0-0", fax: "075-000-0001", isFaxPublic: true },
+    { name: "(架空) ふじみ通所介護", category: FacilityCategory.DAYCARE_ELDERLY, prefecture: "静岡県", city: "富士市", address: "本町1-1", fax: "0545-00-0001", isFaxPublic: true },
+    { name: "(架空) ひまわりリハ", category: FacilityCategory.REHAB_DAY, prefecture: "大阪府", city: "大阪市北区", address: "梅田0-0", fax: "06-0000-0002", isFaxPublic: true },
+    { name: "(架空) あかしクリニック", category: FacilityCategory.CLINIC, prefecture: "兵庫県", city: "明石市", address: "本町0-0", fax: "078-000-0003", isFaxPublic: false },
+    { name: "(架空) みなと総合病院", category: FacilityCategory.HOSPITAL_GENERAL, prefecture: "神奈川県", city: "横浜市中区", address: "山下町0-0", fax: "045-000-0004", isFaxPublic: true },
+    { name: "(架空) サンライズ精神訪問", category: FacilityCategory.HOMEVISIT_NURSE_PSYCHIATRY, prefecture: "福岡県", city: "福岡市博多区", address: "祇園0-0", fax: "092-000-0005", isFaxPublic: true },
+    { name: "(架空) ステップ障害デイ", category: FacilityCategory.DAYCARE_DISABILITY, prefecture: "宮城県", city: "仙台市青葉区", address: "国分町0-0", fax: "022-000-0006", isFaxPublic: true },
+    { name: "(架空) ハート訪問介護", category: FacilityCategory.HOMEVISIT_CARE, prefecture: "愛知県", city: "名古屋市中区", address: "栄0-0", fax: "052-000-0007", isFaxPublic: true },
+    { name: "(架空) もみじ障害訪問", category: FacilityCategory.HOMEVISIT_DISABILITY, prefecture: "広島県", city: "広島市中区", address: "紙屋町0-0", fax: "082-000-0008", isFaxPublic: true },
+    { name: "(架空) なないろグループホーム", category: FacilityCategory.GROUP_HOME_DISABILITY, prefecture: "北海道", city: "札幌市中央区", address: "南1条0-0", fax: "011-000-0009", isFaxPublic: false },
+    { name: "(架空) かもめ急性期病院", category: FacilityCategory.HOSPITAL_ACUTE, prefecture: "千葉県", city: "市川市", address: "市川0-0", fax: "047-000-0010", isFaxPublic: true },
+    { name: "(架空) ひだまり訪問看護", category: FacilityCategory.HOMEVISIT_NURSE, prefecture: "東京都", city: "世田谷区", address: "三軒茶屋0-0", fax: "03-0000-0011", isFaxPublic: true },
+    { name: "(架空) こすもす通所", category: FacilityCategory.DAYCARE_ELDERLY, prefecture: "東京都", city: "杉並区", address: "高円寺0-0", fax: "03-0000-0012", isFaxPublic: true },
+    { name: "(架空) きずなリハ", category: FacilityCategory.REHAB_DAY, prefecture: "東京都", city: "練馬区", address: "豊玉0-0", fax: "03-0000-0013", isFaxPublic: true },
+    { name: "(架空) みらいクリニック", category: FacilityCategory.CLINIC, prefecture: "東京都", city: "渋谷区", address: "代々木0-0", fax: "03-0000-0014", isFaxPublic: false },
+    { name: "(架空) たいよう訪問看護 (精神)", category: FacilityCategory.HOMEVISIT_NURSE_PSYCHIATRY, prefecture: "東京都", city: "豊島区", address: "東池袋0-0", fax: "03-0000-0015", isFaxPublic: true },
+    { name: "(架空) ふれあい障害デイ", category: FacilityCategory.DAYCARE_DISABILITY, prefecture: "東京都", city: "葛飾区", address: "金町0-0", fax: "03-0000-0016", isFaxPublic: true },
+    { name: "(架空) いずみ訪問介護", category: FacilityCategory.HOMEVISIT_CARE, prefecture: "東京都", city: "足立区", address: "千住0-0", fax: "03-0000-0017", isFaxPublic: true },
+  ];
+  for (const s of samples) {
+    const existing = await prisma.facility.findFirst({
+      where: { name: s.name, prefecture: s.prefecture, city: s.city },
+    });
+    if (existing) continue;
+    await prisma.facility.create({ data: s });
+  }
+  console.log(`Seeded ${samples.length} extra facilities (skipped existing)`);
+}
+
 async function main() {
   const { staff } = await seedAdmin();
+  await seedDemoStaff();
   const { applicant1, applicant2 } = await seedApplicants();
   await seedDiagnoses(applicant1.id);
   await seedSkillSheet(applicant2.id);
@@ -339,6 +453,9 @@ async function main() {
   const facilities = await seedFacilities();
   await seedFaxSheet(applicant1.id, facilities[0].id);
   await seedAuditLog(staff.id);
+
+  await seedExtraApplicants();
+  await seedExtraFacilities();
 
   console.log("Seed complete");
 }
