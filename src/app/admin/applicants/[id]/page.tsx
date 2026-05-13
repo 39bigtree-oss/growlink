@@ -22,6 +22,8 @@ import { FACILITY_CATEGORY_OPTIONS } from "@/lib/constants/applicant-options";
 import { prisma } from "@/lib/db";
 
 import { ApplicantTimeline, type TimelineEvent } from "./_timeline";
+import { buildSkillSheetTabData } from "./_skill-sheet-data";
+import { SkillSheetTab } from "./_skill-sheet-tab";
 import { StatusTransitionButtons } from "./_status-transition";
 
 export const metadata = { title: "申込詳細 | グロウリンク" };
@@ -46,6 +48,9 @@ export default async function ApplicantDetailPage({
     include: {
       qualifications: true,
       diagnoses: { orderBy: { score: "desc" } },
+      skillSheet: true,
+      resumeUploads: { orderBy: { createdAt: "desc" } },
+      skillSheetTokens: { orderBy: { createdAt: "desc" } },
       faxSheets: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -57,6 +62,12 @@ export default async function ApplicantDetailPage({
   });
   if (!applicant) notFound();
   const canFaxCreate = hasCapability(staff.role, "fax:create");
+
+  const skillSheetTabData = buildSkillSheetTabData({
+    skillSheet: applicant.skillSheet ?? null,
+    resumes: applicant.resumeUploads ?? [],
+    tokens: applicant.skillSheetTokens ?? [],
+  });
 
   // 監査ログから「この申込に関するイベント」だけを時系列で抽出。
   const auditEvents = await prisma.auditLog.findMany({
@@ -236,10 +247,10 @@ export default async function ApplicantDetailPage({
           </TabsContent>
 
           <TabsContent value="skill-sheet">
-            <PlaceholderCard
-              title="スキルシート"
-              phase="Phase 2"
-              description="本人入力 / 履歴書 OCR からの自動生成 / 多言語入力対応をここに表示します。"
+            <SkillSheetTab
+              applicantId={applicant.id}
+              data={skillSheetTabData}
+              canWrite={canWrite}
             />
           </TabsContent>
 

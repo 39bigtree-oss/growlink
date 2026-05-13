@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
+import { sendEmail } from "@/lib/email/client";
 import { sendReceiptEmail, sendStaffNotificationEmail } from "@/lib/email/receipt";
+import { buildSkillSheetInviteEmail } from "@/lib/email/templates/skill-sheet-invite";
 import { applicantApiSchema } from "@/lib/schemas/applicant";
 import { verifyRecaptchaToken } from "@/lib/security/recaptcha";
+import {
+  buildSkillSheetUrl,
+  ensureSkillSheetToken,
+  resolveAppBaseUrl,
+} from "@/lib/skill-sheet/token";
 
 export const runtime = "nodejs";
 
@@ -63,8 +70,12 @@ export async function POST(req: Request) {
     select: { id: true },
   });
 
-  // メール送信失敗は受付自体は成功とみなし、warn ログだけ残す（再送はバックグラウンドで）。
+  // スキルシート編集用トークンを発行 → 招待メールに含める。
+  // 失敗しても受付自体は成功とみなし、warn ログだけ残す（再送・再発行はスタッフ側で対応）。
   try {
+    const token = await ensureSkillSheetToken(applicant.id);
+    const skillSheetUrl = buildSkillSheetUrl(resolveAppBaseUrl(), token.token);
+
     await Promise.all([
       sendReceiptEmail({
         applicantId: applicant.id,
@@ -74,10 +85,23 @@ export async function POST(req: Request) {
         language: data.language,
         wantsDiagnosis: data.wantsDiagnosis,
       }),
+      sendEmail(
+        buildSkillSheetInviteEmail({
+          applicantId: applicant.id,
+          to: data.email,
+          lastName: data.lastName,
+          firstName: data.firstName,
+          locale: data.language ?? "ja",
+          skillSheetUrl,
+        }),
+      ),
       sendStaffNotificationEmail({ applicantId: applicant.id }),
     ]);
   } catch (err) {
-    console.warn("[apply] email stub failed", { applicantId: applicant.id, err: String(err) });
+    console.warn("[apply] post-receipt steps failed", {
+      applicantId: applicant.id,
+      err: String(err),
+    });
   }
 
   return NextResponse.json({ ok: true, applicantId: applicant.id }, { status: 201 });

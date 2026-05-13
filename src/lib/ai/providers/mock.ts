@@ -1,4 +1,5 @@
 import type { CompleteOptions, CompleteResult } from "../client";
+import { getMockExpected } from "@/lib/ocr/providers/mock";
 
 import diagnosisTemplates from "./mock-data/diagnosis-comments.json";
 import faxBodies from "./mock-data/fax-bodies.json";
@@ -156,6 +157,10 @@ export const mockProvider = {
         const data = generateOverview(userPayload as DiagnosisPayload) as unknown as T;
         return { ok: true, kind: "json", data, provider: "mock" };
       }
+      if (opts.promptName === "resume.parse") {
+        const data = generateResumeParse(userPayload as ResumeParsePayload) as unknown as T;
+        return { ok: true, kind: "json", data, provider: "mock" };
+      }
       if (opts.promptName === "fax.cover") {
         const data = generateFaxCover(userPayload as FaxPayload) as unknown as T;
         return { ok: true, kind: "json", data, provider: "mock" };
@@ -184,4 +189,38 @@ function safeParseJson(s: string): unknown {
   } catch {
     return {};
   }
+}
+
+// =========================
+// 履歴書パース (Phase 2)
+// =========================
+
+type ResumeParsePayload = {
+  text?: string;
+  preferredLocale?: string;
+  /** OCR モックが返した provider 文字列 (例: "mock:nurse-mid-career") */
+  ocrProvider?: string;
+};
+
+function generateResumeParse(payload: ResumeParsePayload) {
+  if (payload.ocrProvider) {
+    const expected = getMockExpected(payload.ocrProvider);
+    if (expected) return expected;
+  }
+  if (payload.text) {
+    const KEYS = ["nurse-mid-career", "careworker-young", "ja-bachelor-foreign"];
+    const key = KEYS[simpleHash(payload.text) % KEYS.length];
+    const expected = getMockExpected(`mock:${key}`);
+    if (expected) return expected;
+  }
+  return { educations: [], careers: [], skills: [], selfPR: "" };
+}
+
+function simpleHash(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
 }

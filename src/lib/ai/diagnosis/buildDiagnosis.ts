@@ -125,14 +125,68 @@ export async function buildDiagnosis(applicantId: string): Promise<BuildDiagnosi
   }
 
   // ステータス遷移: RECEIVED → DIAGNOSED (より進んでいる場合は維持)。
+  // 初回診断完了時のみ、結果通知 + スキルシート入力依頼メールを送る (2 通)。
+  let justDiagnosed = false;
   if (applicant.status === "RECEIVED") {
     await prisma.applicant.update({
       where: { id: applicantId },
       data: { status: "DIAGNOSED" },
     });
+    justDiagnosed = true;
+  }
+
+  if (justDiagnosed) {
+    try {
+      await notifyDiagnosisReady({ applicantId, rows });
+    } catch (err) {
+      console.warn("[buildDiagnosis] diagnosis_ready email failed", {
+        applicantId,
+        err: String(err),
+      });
+    }
   }
 
   return { applicantId, provider, rows };
+}
+
+async function notifyDiagnosisReady(input: { applicantId: string; rows: Diagnosis[] }) {
+  // 動的 import で循環参照を避け、Phase 2 から本ファイルが email レイヤを直接知らないようにする。
+  const [{ sendEmail }, { buildDiagnosisReadyEmail }, { FACILITY_CATEGORY_OPTIONS }, tokenLib] =
+    await Promise.all([
+      import("@/lib/email/client"),
+      import("@/lib/email/templates/diagnosis-ready"),
+      import("@/lib/constants/applicant-options"),
+      import("@/lib/skill-sheet/token"),
+    ]);
+
+  const top = [...input.rows].sort((a, b) => b.score - a.score)[0];
+  if (!top) return;
+  const applicantRow = await prisma.applicant.findFirst({
+    where: { id: input.applicantId, deletedAt: null },
+    select: {
+      email: true,
+      lastName: true,
+      firstName: true,
+      language: true,
+    },
+  });
+  if (!applicantRow) return;
+  const token = await tokenLib.ensureSkillSheetToken(input.applicantId);
+  const url = tokenLib.buildSkillSheetUrl(tokenLib.resolveAppBaseUrl(), token.token);
+  const categoryLabel =
+    FACILITY_CATEGORY_OPTIONS.find((o) => o.value === top.category)?.label ?? top.category;
+  await sendEmail(
+    buildDiagnosisReadyEmail({
+      applicantId: input.applicantId,
+      to: applicantRow.email,
+      lastName: applicantRow.lastName,
+      firstName: applicantRow.firstName,
+      locale: applicantRow.language ?? "ja",
+      topRank: top.rank,
+      topCategoryLabel: categoryLabel,
+      skillSheetUrl: url,
+    }),
+  );
 }
 
 /** Phase 1-5 の暫定: 80 字を超えるコメントは切り詰める。 */

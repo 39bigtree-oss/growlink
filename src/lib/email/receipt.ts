@@ -1,6 +1,8 @@
 import "server-only";
 
-import { maskEmail, maskName } from "@/lib/mask";
+import { sendEmail } from "./client";
+import { buildApplicantReceiptEmail } from "./templates/applicant-receipt";
+import { buildStaffNotificationEmail } from "./templates/staff-notification";
 
 export type ReceiptEmailInput = {
   applicantId: string;
@@ -11,42 +13,23 @@ export type ReceiptEmailInput = {
   wantsDiagnosis: boolean;
 };
 
-// Phase 1-3 暫定: 実送信せずログのみ。Resend 連携は Phase 1-5 で追加。
+/**
+ * Phase 1-3 から維持しているエントリポイント。Phase 2 で内部実装をテンプレ + provider 経由に差し替えた。
+ * 旧呼び出し元 (`/api/applicants/route.ts`) は変更なしで動く。
+ */
 export async function sendReceiptEmail(input: ReceiptEmailInput): Promise<void> {
-  const body = renderReceiptBody(input);
-
-  // PII を直接ログに出さない（マスク済みのみ）。
-  console.log("[receipt-email] stub send", {
-    applicantId: input.applicantId,
-    to: maskEmail(input.email),
-    name: maskName(`${input.lastName} ${input.firstName}`),
-    wantsDiagnosis: input.wantsDiagnosis,
-    bodyChars: body.length,
-  });
+  await sendEmail(
+    buildApplicantReceiptEmail({
+      applicantId: input.applicantId,
+      to: input.email,
+      lastName: input.lastName,
+      firstName: input.firstName,
+      locale: input.language ?? "ja",
+      wantsDiagnosis: input.wantsDiagnosis,
+    }),
+  );
 }
 
-// 管理者向け通知。受付があった旨だけ伝え、本文に氏名は乗せない。
 export async function sendStaffNotificationEmail(input: { applicantId: string }): Promise<void> {
-  console.log("[staff-notification] stub send", {
-    applicantId: input.applicantId,
-    subject: "[グロウリンク] 新規申込あり",
-  });
-}
-
-function renderReceiptBody(input: ReceiptEmailInput): string {
-  const nextStep = input.wantsDiagnosis
-    ? "AI 適職診断の結果は数営業日以内にメールでお送りします。"
-    : "担当者よりご連絡を差し上げます。";
-  return [
-    `${input.lastName} ${input.firstName} 様`,
-    "",
-    "グロウリンクへのお申込みありがとうございます。",
-    "受付を完了しました。",
-    "",
-    nextStep,
-    "",
-    "本メールは送信専用です。お問い合わせは別途お送りください。",
-    "",
-    "— グロウリンク",
-  ].join("\n");
+  await sendEmail(buildStaffNotificationEmail({ applicantId: input.applicantId }));
 }
