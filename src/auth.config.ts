@@ -13,6 +13,7 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = Boolean(auth?.user);
       const isOnAdmin =
+        nextUrl.pathname.startsWith("/admin") ||
         nextUrl.pathname.startsWith("/dashboard") ||
         nextUrl.pathname.startsWith("/applicants");
       if (isOnAdmin) return isLoggedIn;
