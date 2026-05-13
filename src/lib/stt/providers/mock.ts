@@ -1,8 +1,9 @@
 import answers from "./mock-data/answers.json";
 import type { SttProvider, SttResult } from "../types";
 
-type Bank = { ja: string[][]; en: string[][] };
+type Bank = Record<string, string[][]>;
 const DATA = answers as unknown as Bank;
+const SUPPORTED = new Set(["ja", "en", "vi", "id", "zh"]);
 
 function hash(s: string): number {
   let h = 0x811c9dc5;
@@ -21,8 +22,8 @@ function hash(s: string): number {
 export const mockSttProvider: SttProvider = {
   name: "mock",
   async transcribe({ language, hint }): Promise<SttResult> {
-    const lang = language === "en" ? "en" : "ja";
-    const bank = DATA[lang];
+    const lang = language && SUPPORTED.has(language) ? language : "ja";
+    const bank = DATA[lang] ?? DATA.ja;
     const turnIndex = Math.max(0, Math.min(bank.length - 1, hint?.turnIndex ?? 0));
     const variants = bank[turnIndex] ?? [""];
     const seed = `${hint?.seed ?? ""}|${turnIndex}`;

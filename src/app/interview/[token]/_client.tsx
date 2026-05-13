@@ -17,8 +17,17 @@ import type { SupportedLocale } from "@/lib/i18n/config";
 
 import jaMessages from "@/../messages/ja.json";
 import enMessages from "@/../messages/en.json";
+import viMessages from "@/../messages/vi.json";
+import idMessages from "@/../messages/id.json";
+import zhMessages from "@/../messages/zh.json";
 
-const MESSAGES: Record<SupportedLocale, typeof jaMessages> = { ja: jaMessages, en: enMessages };
+const MESSAGES: Record<SupportedLocale, typeof jaMessages> = {
+  ja: jaMessages,
+  en: enMessages,
+  vi: viMessages as unknown as typeof jaMessages,
+  id: idMessages as unknown as typeof jaMessages,
+  zh: zhMessages as unknown as typeof jaMessages,
+};
 const MAX_TURNS = 5;
 
 type Turn = { turnIndex: number; role: "ai" | "applicant"; text: string };

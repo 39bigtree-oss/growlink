@@ -17,7 +17,7 @@ export type ApplicantReceiptInput = {
 /** Phase 1-3 受付メールを Phase 2 で正式テンプレ化。 */
 export function buildApplicantReceiptEmail(input: ApplicantReceiptInput): EmailMessage {
   const locale = resolveLocale(input.locale);
-  const t = TEXTS[locale];
+  const t = locale in TEXTS ? TEXTS[locale as keyof typeof TEXTS] : TEXTS.ja;
   const greet = t.greet({ name: `${input.lastName} ${input.firstName}` });
   const nextStep = input.wantsDiagnosis ? t.nextWithDiagnosis : t.nextWithoutDiagnosis;
   const bodyText = [greet, "", t.body, "", nextStep].join("\n");

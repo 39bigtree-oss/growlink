@@ -1,0 +1,118 @@
+{
+  "common": {
+    "save": "Lưu",
+    "submit": "Gửi",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "uploading": "Đang tải lên...",
+    "saving": "Đang lưu...",
+    "saved": "Đã lưu",
+    "loading": "Đang tải...",
+    "required": "Bắt buộc",
+    "optional": "Tùy chọn",
+    "language": "Ngôn ngữ",
+    "logo": "Growlink"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "id": "Bahasa Indonesia",
+    "zh": "中文"
+  },
+  "skillSheet": {
+    "pageTitle": "Bảng kỹ năng",
+    "intro": "Cảm ơn bạn đã ứng tuyển. Vui lòng điền bảng kỹ năng. Có thể lưu nháp.",
+    "expired": "Liên kết này đã hết hạn hoặc bị thu hồi. Vui lòng liên hệ tư vấn viên.",
+    "alreadySubmitted": "Bảng kỹ năng đã được gửi. Cần chỉnh sửa, hãy liên hệ tư vấn viên.",
+    "tabs": {
+      "education": "Học vấn",
+      "career": "Sự nghiệp",
+      "skills": "Kỹ năng",
+      "desired": "Mong muốn",
+      "selfPR": "Giới thiệu",
+      "resume": "Tải CV"
+    },
+    "education": {
+      "title": "Học vấn",
+      "addRow": "Thêm",
+      "schoolName": "Trường",
+      "department": "Chuyên ngành",
+      "graduatedOn": "Tốt nghiệp (YYYY-MM)",
+      "remove": "Xóa"
+    },
+    "career": {
+      "title": "Sự nghiệp",
+      "addRow": "Thêm",
+      "company": "Công ty",
+      "role": "Vai trò",
+      "from": "Bắt đầu (YYYY-MM)",
+      "to": "Kết thúc (để trống nếu hiện tại)",
+      "achievements": "Thành tích"
+    },
+    "skills": {
+      "title": "Kỹ năng",
+      "addRow": "Thêm",
+      "name": "Tên kỹ năng",
+      "level": "Mức (1-5)"
+    },
+    "desired": {
+      "title": "Mong muốn",
+      "areas": "Khu vực mong muốn",
+      "schedule": "Lịch làm việc mong muốn",
+      "scheduleHint": "VD: 3 ngày/tuần, ca ngày",
+      "startMonth": "Thời điểm bắt đầu (YYYY-MM)",
+      "salary": "Lương mong muốn (man yen)",
+      "notes": "Khác"
+    },
+    "selfPR": {
+      "title": "Giới thiệu bản thân",
+      "placeholder": "Hãy chia sẻ điểm mạnh của bạn trong 400 ký tự.",
+      "remaining": "Còn lại {n} ký tự"
+    },
+    "resume": {
+      "title": "Tải CV lên",
+      "description": "Hỗ trợ PDF/PNG/JPG. AI sẽ trích xuất học vấn và kinh nghiệm.",
+      "pickFile": "Chọn tập tin",
+      "processing": "Đang xử lý...",
+      "done": "Hoàn tất.",
+      "error": "Không thành công.",
+      "tooLarge": "Tập tin quá lớn (tối đa 10 MB)",
+      "wrongType": "Không hỗ trợ định dạng này"
+    },
+    "actions": {
+      "savePartial": "Lưu nháp",
+      "submit": "Gửi bảng kỹ năng",
+      "submitConfirm": "Sau khi gửi không thể chỉnh sửa. Tiếp tục?",
+      "submitted": "Cảm ơn bạn đã gửi. Tư vấn viên sẽ liên hệ."
+    },
+    "validation": {
+      "required": "Bắt buộc",
+      "tooLong": "Quá dài",
+      "invalidDate": "Định dạng ngày không hợp lệ"
+    }
+  },
+  "interview": {
+    "pageTitle": "Phỏng vấn AI",
+    "intro": "Phỏng vấn AI ngắn (khoảng 5 câu, 10-15 phút).",
+    "expired": "Liên kết đã hết hạn hoặc bị thu hồi.",
+    "alreadyCompleted": "Phỏng vấn đã hoàn tất.",
+    "start": "Bắt đầu",
+    "ask": "Câu tiếp",
+    "answer": "Gửi trả lời",
+    "end": "Kết thúc",
+    "endConfirm": "Kết thúc phỏng vấn?",
+    "thanks": "Cảm ơn bạn.",
+    "yourAnswer": "Trả lời của bạn",
+    "ai": "AI",
+    "you": "Bạn",
+    "turnLabel": "Câu {n} / {total}",
+    "progress": "Tiến độ"
+  },
+  "email": {
+    "footer": {
+      "company": "Growlink Inc.",
+      "contact": "Email chỉ gửi. Vui lòng liên hệ tư vấn viên để hỏi thêm."
+    }
+  }
+}

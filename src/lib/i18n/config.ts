@@ -1,8 +1,8 @@
 /**
- * Phase 2 では ja / en の 2 言語のみサポート。
- * Phase 5 で vi / id / zh を追加する。Locale を増やすときはここと messages/ を同時に更新する。
+ * Phase 5 で vi / id / zh を追加。
+ * 追加: ベトナム語、インドネシア語、中国語 (簡体)。
  */
-export const SUPPORTED_LOCALES = ["ja", "en"] as const;
+export const SUPPORTED_LOCALES = ["ja", "en", "vi", "id", "zh"] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: SupportedLocale = "ja";

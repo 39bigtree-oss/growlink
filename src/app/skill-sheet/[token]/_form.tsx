@@ -21,10 +21,16 @@ import type { SkillSheetContent } from "@/lib/schemas/skill-sheet";
 
 import jaMessages from "@/../messages/ja.json";
 import enMessages from "@/../messages/en.json";
+import viMessages from "@/../messages/vi.json";
+import idMessages from "@/../messages/id.json";
+import zhMessages from "@/../messages/zh.json";
 
 const MESSAGES: Record<SupportedLocale, typeof jaMessages> = {
   ja: jaMessages,
   en: enMessages,
+  vi: viMessages as unknown as typeof jaMessages,
+  id: idMessages as unknown as typeof jaMessages,
+  zh: zhMessages as unknown as typeof jaMessages,
 };
 
 type T = (path: string, vars?: Record<string, string | number>) => string;
@@ -186,6 +192,9 @@ export function SkillSheetForm({
           >
             <option value="ja">{t("locale.ja")}</option>
             <option value="en">{t("locale.en")}</option>
+            <option value="vi">{t("locale.vi")}</option>
+            <option value="id">{t("locale.id")}</option>
+            <option value="zh">{t("locale.zh")}</option>
           </select>
           {savedAt && (
             <span className="text-emerald-700">
