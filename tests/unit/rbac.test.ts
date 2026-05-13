@@ -20,10 +20,12 @@ describe("hasCapability — spec.md §3.6 の権限マトリクス", () => {
     expect(hasCapability("CONSULTANT", "settings:write")).toBe(false);
   });
 
-  it("SALES は申込閲覧と FAX 送信だけ", () => {
+  it("SALES は申込閲覧と FAX 作成・送信のみ", () => {
     expect(hasCapability("SALES", "applicants:read")).toBe(true);
     expect(hasCapability("SALES", "applicants:write")).toBe(false);
     expect(hasCapability("SALES", "applicants:approve")).toBe(false);
+    expect(hasCapability("SALES", "fax:read")).toBe(true);
+    expect(hasCapability("SALES", "fax:create")).toBe(true);
     expect(hasCapability("SALES", "fax:send")).toBe(true);
     expect(hasCapability("SALES", "facilities:read")).toBe(true);
     expect(hasCapability("SALES", "facilities:write")).toBe(false);
@@ -32,7 +34,9 @@ describe("hasCapability — spec.md §3.6 の権限マトリクス", () => {
   it("VIEWER は閲覧のみ", () => {
     expect(hasCapability("VIEWER", "applicants:read")).toBe(true);
     expect(hasCapability("VIEWER", "facilities:read")).toBe(true);
+    expect(hasCapability("VIEWER", "fax:read")).toBe(true);
     expect(hasCapability("VIEWER", "applicants:write")).toBe(false);
+    expect(hasCapability("VIEWER", "fax:create")).toBe(false);
     expect(hasCapability("VIEWER", "fax:send")).toBe(false);
   });
 

@@ -1,6 +1,7 @@
 import type { CompleteOptions, CompleteResult } from "../client";
 
 import diagnosisTemplates from "./mock-data/diagnosis-comments.json";
+import faxBodies from "./mock-data/fax-bodies.json";
 
 type CategoryTemplate = {
   pro: { S?: string[]; A?: string[]; B?: string[]; C?: string[]; D?: string[] };
@@ -63,6 +64,84 @@ function generateOverview(payload: DiagnosisPayload): { overview: string } {
   return { overview: pick(pool, `${nameKey}|overview`) };
 }
 
+// ====================
+// FAX 本文 (Phase 1-7)
+// ====================
+
+type FaxBodiesData = {
+  default: {
+    cover: {
+      greeting: string;
+      headline: string;
+      summary: Record<"S" | "A" | "B" | "C" | "D", string>;
+      callToAction: string;
+    };
+    detail: {
+      interviewSummary: string;
+      careerHighlights: string[];
+      strengths: string[];
+      commuteAreaNote: string;
+      startAvailability: string;
+      introTermsNote: string;
+    };
+  };
+  categories: Record<
+    string,
+    {
+      cover?: { headline?: string };
+      detail?: { careerHighlights?: string[]; strengths?: string[] };
+    }
+  >;
+};
+const FAX = faxBodies as unknown as FaxBodiesData;
+
+type FaxPayload = {
+  applicant?: {
+    initials?: string;
+    ageLabel?: string;
+    qualifications?: string[];
+    topDiagnosis?: { category?: string; rank?: "S" | "A" | "B" | "C" | "D"; score?: number };
+  };
+  facility?: { name?: string; category?: string; categoryLabel?: string };
+  desired?: { schedule?: string; startMonth?: string };
+  commuteArea?: string;
+  startMonth?: string;
+  interviewSummary?: string | null;
+};
+
+function generateFaxCover(payload: FaxPayload) {
+  const rank = payload.applicant?.topDiagnosis?.rank ?? "B";
+  const category = payload.facility?.category;
+  const headline =
+    (category && FAX.categories[category]?.cover?.headline) ?? FAX.default.cover.headline;
+  return {
+    greeting: FAX.default.cover.greeting,
+    headline,
+    summary: FAX.default.cover.summary[rank] ?? FAX.default.cover.summary.B,
+    callToAction: FAX.default.cover.callToAction,
+  };
+}
+
+function generateFaxDetail(payload: FaxPayload) {
+  const category = payload.facility?.category;
+  const cat = category ? FAX.categories[category]?.detail : undefined;
+  return {
+    interviewSummary:
+      payload.interviewSummary && payload.interviewSummary.length > 0
+        ? payload.interviewSummary
+        : FAX.default.detail.interviewSummary,
+    careerHighlights: cat?.careerHighlights ?? FAX.default.detail.careerHighlights,
+    strengths: cat?.strengths ?? FAX.default.detail.strengths,
+    commuteAreaNote: payload.commuteArea
+      ? `通勤可能エリア: ${payload.commuteArea}`
+      : FAX.default.detail.commuteAreaNote,
+    startAvailability: payload.startMonth
+      ? `開始可能時期: ${payload.startMonth}`
+      : FAX.default.detail.startAvailability,
+    introTermsNote: FAX.default.detail.introTermsNote,
+  };
+}
+
 export const mockProvider = {
   name: "mock",
   async complete<T = unknown>(opts: CompleteOptions): Promise<CompleteResult<T>> {
@@ -75,6 +154,14 @@ export const mockProvider = {
       }
       if (opts.promptName === "diagnosis.overview") {
         const data = generateOverview(userPayload as DiagnosisPayload) as unknown as T;
+        return { ok: true, kind: "json", data, provider: "mock" };
+      }
+      if (opts.promptName === "fax.cover") {
+        const data = generateFaxCover(userPayload as FaxPayload) as unknown as T;
+        return { ok: true, kind: "json", data, provider: "mock" };
+      }
+      if (opts.promptName === "fax.detail") {
+        const data = generateFaxDetail(userPayload as FaxPayload) as unknown as T;
         return { ok: true, kind: "json", data, provider: "mock" };
       }
       // それ以外は、システムプロンプトの先頭を要約として返す素朴な挙動。

@@ -46,9 +46,17 @@ export default async function ApplicantDetailPage({
     include: {
       qualifications: true,
       diagnoses: { orderBy: { score: "desc" } },
+      faxSheets: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          facility: { select: { name: true, prefecture: true, city: true } },
+          reaction: { select: { interested: true, comment: true } },
+        },
+      },
     },
   });
   if (!applicant) notFound();
+  const canFaxCreate = hasCapability(staff.role, "fax:create");
 
   // 監査ログから「この申込に関するイベント」だけを時系列で抽出。
   const auditEvents = await prisma.auditLog.findMany({
@@ -244,11 +252,78 @@ export default async function ApplicantDetailPage({
           </TabsContent>
 
           <TabsContent value="fax">
-            <PlaceholderCard
-              title="FAX 送信履歴"
-              phase="Phase 1-7"
-              description="施設別の FAX 送信票・送信状況・反応 (興味あり等) をここに表示します。"
-            />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">FAX 送信履歴</CardTitle>
+                {canFaxCreate && (
+                  <Button asChild size="sm">
+                    <Link href={`/admin/fax-sheets/new?applicantId=${applicant.id}`}>
+                      新規 FAX 送信票を作成
+                    </Link>
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="text-sm">
+                {applicant.faxSheets.length === 0 ? (
+                  <CardDescription>
+                    この求職者の FAX 送信票はまだ作成されていません。
+                  </CardDescription>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b text-left text-muted-foreground">
+                          <th className="py-1 pr-2">施設</th>
+                          <th className="py-1 pr-2">ステータス</th>
+                          <th className="py-1 pr-2">反応</th>
+                          <th className="py-1 pr-2">作成日</th>
+                          <th className="py-1 pr-2">送信日</th>
+                          <th className="py-1 pr-2 text-right">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applicant.faxSheets.map((s) => (
+                          <tr key={s.id} className="border-b last:border-0">
+                            <td className="py-1 pr-2">
+                              <div className="font-medium">{s.facility.name}</div>
+                              <div className="text-muted-foreground">
+                                {s.facility.prefecture}
+                                {s.facility.city}
+                              </div>
+                            </td>
+                            <td className="py-1 pr-2">
+                              <Badge variant="muted">{s.status}</Badge>
+                            </td>
+                            <td className="py-1 pr-2">
+                              {s.reaction
+                                ? s.reaction.interested
+                                  ? "興味あり"
+                                  : "辞退"
+                                : "未返信"}
+                            </td>
+                            <td className="py-1 pr-2">{s.createdAt.toISOString().slice(0, 10)}</td>
+                            <td className="py-1 pr-2">
+                              {s.sentAt ? s.sentAt.toISOString().slice(0, 10) : "─"}
+                            </td>
+                            <td className="py-1 pr-2 text-right">
+                              <Button asChild size="sm" variant="outline">
+                                <a
+                                  href={`/api/fax-sheets/${s.id}/pdf`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  PDF
+                                </a>
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

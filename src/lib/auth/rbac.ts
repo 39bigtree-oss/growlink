@@ -18,6 +18,8 @@ export type AdminCapability =
   | "applicants:approve"
   | "facilities:read"
   | "facilities:write"
+  | "fax:read"
+  | "fax:create"
   | "fax:send"
   | "settings:read"
   | "settings:write";
@@ -29,6 +31,8 @@ const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
     "applicants:approve",
     "facilities:read",
     "facilities:write",
+    "fax:read",
+    "fax:create",
     "fax:send",
     "settings:read",
     "settings:write",
@@ -38,10 +42,12 @@ const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
     "applicants:write",
     "applicants:approve",
     "facilities:read",
+    "fax:read",
+    "fax:create",
   ]),
-  // 営業: 申込一覧・詳細を見られて、FAX 送信のみ実行できる。編集権限なし。
-  SALES: new Set(["applicants:read", "facilities:read", "fax:send"]),
-  VIEWER: new Set(["applicants:read", "facilities:read"]),
+  // 営業: 申込一覧・詳細を見られて、FAX 作成・送信を担当。施設マスタは読みのみ。
+  SALES: new Set(["applicants:read", "facilities:read", "fax:read", "fax:create", "fax:send"]),
+  VIEWER: new Set(["applicants:read", "facilities:read", "fax:read"]),
 };
 
 export function hasCapability(role: StaffRole | string | null | undefined, cap: AdminCapability): boolean {
