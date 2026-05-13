@@ -35,9 +35,17 @@ describe("hasCapability — spec.md §3.6 の権限マトリクス", () => {
     expect(hasCapability("VIEWER", "applicants:read")).toBe(true);
     expect(hasCapability("VIEWER", "facilities:read")).toBe(true);
     expect(hasCapability("VIEWER", "fax:read")).toBe(true);
+    expect(hasCapability("VIEWER", "interviews:read")).toBe(true);
     expect(hasCapability("VIEWER", "applicants:write")).toBe(false);
     expect(hasCapability("VIEWER", "fax:create")).toBe(false);
     expect(hasCapability("VIEWER", "fax:send")).toBe(false);
+    expect(hasCapability("VIEWER", "interviews:write")).toBe(false);
+  });
+
+  it("CONSULTANT は面接編集権を持つ、SALES は閲覧のみ", () => {
+    expect(hasCapability("CONSULTANT", "interviews:write")).toBe(true);
+    expect(hasCapability("SALES", "interviews:read")).toBe(true);
+    expect(hasCapability("SALES", "interviews:write")).toBe(false);
   });
 
   it("不明 role は false", () => {

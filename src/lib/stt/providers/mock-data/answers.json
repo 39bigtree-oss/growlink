@@ -1,0 +1,57 @@
+{
+  "_comment": "Phase 3 mock 用の固定文字起こし。質問インデックスごとに 3 バリエーションを持ち、seed (Interview.id 等) でハッシュ選択する。",
+  "ja": [
+    [
+      "看護師として 10 年以上、訪問看護を中心に経験を積んできました。ご利用者やご家族との対話を大切にしています。",
+      "もともと急性期病棟で 5 年勤めた後、訪問看護に移って 8 年目になります。緊急対応の経験も活かせます。",
+      "前職では訪問看護ステーションでチームリーダーを 3 年務めました。新人教育にも力を入れていました。"
+    ],
+    [
+      "次のステップでは、より地域に密着した働き方を希望しています。日勤中心で週 4 日が理想です。",
+      "夜勤も対応できますが、家族との時間を確保したいので、週 3 日のシフト制があれば嬉しいです。",
+      "管理職として現場運営とスタッフ育成にも携わりたいと考えています。"
+    ],
+    [
+      "強みは、難しいご家族との関係構築です。話を最後まで聞いて、お気持ちを整理するお手伝いができます。",
+      "整理整頓と記録の正確さに自信があります。チーム全体のミスを減らす仕組み作りも提案できます。",
+      "新人さんの指導とフォローが得意です。質問を引き出して、自分で考える力を伸ばす関わりをしています。"
+    ],
+    [
+      "苦手と感じるのは大規模な組織でのスピーディーな調整です。少人数の現場の方がパフォーマンスが出ます。",
+      "数値管理や経営側の業務はまだ経験が浅く、研修やサポートがあれば学んでいきたいです。",
+      "電子カルテの新システム導入時に時間がかかりました。慣れるまで支援が欲しいです。"
+    ],
+    [
+      "勤務開始は来月以降で調整可能です。引き継ぎが必要なので 1 か月前にはご連絡いただけると助かります。",
+      "急ぎではないので、面談後にゆっくり検討させてください。希望業態は訪問看護を第一にしています。",
+      "現職を 2026 年 7 月末で退職予定で、8 月から働けます。"
+    ]
+  ],
+  "en": [
+    [
+      "I have over 10 years of nursing experience, mainly in home visit nursing. I value communication with residents and their families.",
+      "I worked in acute care for 5 years and have been in home visit nursing for 8 years. I can handle emergency cases too.",
+      "I led a team of nurses for 3 years and focused on training newer staff."
+    ],
+    [
+      "I'm looking for a more community-based role, ideally 4 day-shifts per week.",
+      "I can do night shifts but would prefer 3 days a week to keep family time.",
+      "I'd like to move into leadership and contribute to operations and staff growth."
+    ],
+    [
+      "My strength is building relationships with difficult family members through patient listening.",
+      "I'm methodical and detail-oriented in record keeping. I can propose process improvements.",
+      "I enjoy coaching and asking questions that help newer staff think for themselves."
+    ],
+    [
+      "Coordinating quickly across very large organizations is not my strength. I perform best in small teams.",
+      "Financial reporting is new to me, so I'd appreciate training and support there.",
+      "Adapting to a new electronic medical record took longer than expected. I'd want onboarding support."
+    ],
+    [
+      "I can start next month with a one-month handover notice.",
+      "I'd like to take time to think after the interview. My top preference is home visit nursing.",
+      "I will leave my current job at the end of July 2026 and can start in August."
+    ]
+  ]
+}

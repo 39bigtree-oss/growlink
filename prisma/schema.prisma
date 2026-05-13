@@ -215,9 +215,9 @@ model SkillSheet {
 }
 
 model Interview {
-  id          String    @id @default(cuid())
-  applicantId String    @unique
-  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  applicantId String           @unique
+  applicant   Applicant        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   callSid     String?
   startedAt   DateTime?
   endedAt     DateTime?
@@ -225,6 +225,69 @@ model Interview {
   transcript  String?
   summary     Json?
   audioKey    String?
+  // Phase 3 で追加。"scheduled" | "in_progress" | "completed" | "failed"
+  status      String           @default("scheduled")
+  // 質問数 (interview.next-question を呼ぶたびにインクリメント)。最大値は INTERVIEW_MAX_TURNS。
+  turnCount   Int              @default(0)
+  channel     String? // "voice" (Twilio) | "text" (Simulator)
+  provider    String? // "mock" | "twilio"
+  language    String           @default("ja")
+  turns       InterviewTurn[]
+  tokens      InterviewToken[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model InterviewTurn {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  turnIndex   Int
+  // "ai" = AI による質問、"applicant" = 求職者の回答
+  role        String
+  text        String    @db.Text
+  audioKey    String?
+  // STT/TTS のプロバイダ名 (provider:model 形式可)。
+  provider    String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([interviewId, turnIndex])
+  @@index([interviewId])
+}
+
+// 求職者向け面接ページの認証トークン。Interview 単位で発行する。
+model InterviewToken {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([interviewId])
+  @@index([expiresAt])
+}
+
+// ジョブキュー (BullMQ / メモリ) の実行ログ。リトライ・失敗追跡用。
+model JobLog {
+  id           String    @id @default(cuid())
+  queue        String // "diagnosis" | "resume" | "interview"
+  jobName      String // ジョブのキー (例: "diagnosis.generate")
+  target       String? // ApplicantId / UploadId / InterviewId などのキー
+  payload      Json?
+  status       String    @default("queued") // "queued" | "active" | "completed" | "failed"
+  attempts     Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([queue, status])
+  @@index([target])
+  @@index([createdAt])
 }
 
 // =====================

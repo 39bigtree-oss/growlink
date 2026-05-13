@@ -92,6 +92,23 @@
       "invalidDate": "Invalid date format"
     }
   },
+  "interview": {
+    "pageTitle": "AI Interview",
+    "intro": "Our AI interviewer will ask about 5 short questions. It takes 10-15 minutes.",
+    "expired": "This link has expired or has been revoked. Please contact your consultant.",
+    "alreadyCompleted": "Your AI interview has already been completed. Please contact your consultant for any changes.",
+    "start": "Start interview",
+    "ask": "Next question",
+    "answer": "Submit answer",
+    "end": "End interview",
+    "endConfirm": "End the interview now. Continue?",
+    "thanks": "Thanks for your answers. Your consultant will be in touch.",
+    "yourAnswer": "Your answer",
+    "ai": "AI",
+    "you": "You",
+    "turnLabel": "Question {n} / {total}",
+    "progress": "Progress"
+  },
   "email": {
     "footer": {
       "company": "Growlink Inc.",

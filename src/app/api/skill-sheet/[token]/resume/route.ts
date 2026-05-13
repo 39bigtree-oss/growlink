@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { enqueueJob } from "@/lib/jobs/registry";
 import { ResumeError, processResume, storeResume } from "@/lib/skill-sheet/processResume";
 import { consumeSkillSheetToken } from "@/lib/skill-sheet/token";
 
@@ -37,6 +38,9 @@ export async function POST(
   }
   const bytes = Buffer.from(await file.arrayBuffer());
 
+  const url = new URL(req.url);
+  const isAsync = url.searchParams.get("async") === "1";
+
   try {
     const upload = await storeResume({
       applicantId: auth.token.applicantId,
@@ -44,6 +48,18 @@ export async function POST(
       mimeType: file.type || "application/octet-stream",
       bytes,
     });
+    if (isAsync) {
+      const { jobId } = await enqueueJob(
+        "resume",
+        "resume.process",
+        { uploadId: upload.id },
+        { target: upload.id, dedupeKey: `resume-${upload.id}` },
+      );
+      return NextResponse.json(
+        { ok: true, async: true, jobId, uploadId: upload.id, status: upload.status },
+        { status: 202 },
+      );
+    }
     const result = await processResume(upload.id);
     return NextResponse.json(
       {
