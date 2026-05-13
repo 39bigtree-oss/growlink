@@ -1,0 +1,105 @@
+{
+  "_comment": "履歴書 OCR モック。ファイル名/ハッシュをもとに 3 パターンの履歴書を返す。氏名/住所/連絡先などは架空のものに統一すること (実 PII を絶対に置かない)。",
+  "patterns": [
+    {
+      "key": "nurse-mid-career",
+      "label": "看護師・40代・訪問看護志望",
+      "text": "履歴書\n氏名: 山田 花子 (やまだ はなこ)\n生年月日: 1984年4月12日\n性別: 女性\n住所: 東京都新宿区西新宿0-0-0\n電話: 090-0000-0000\nメール: hanako.example@example.test\n\n■学歴\n2003年3月 東京都立第一高等学校 卒業\n2007年3月 東京都立医療短期大学 看護学科 卒業\n\n■職歴\n2007年4月〜2013年3月 みなと総合病院 内科病棟 看護師\n  急性期病棟にて夜勤を含む 3 交代勤務。新人指導も担当。\n2013年4月〜2020年3月 中央訪問看護ステーション 訪問看護師\n  単独訪問・記録・ご家族対応を主担当。担当利用者 25 名。\n2020年4月〜現在 訪問看護ステーションみどり 主任\n  スタッフ 6 名のシフト管理、新人 OJT を兼務。\n\n■保有資格\n2007年4月 看護師免許 (第123456号)\n2010年7月 普通自動車運転免許\n\n■自己 PR\n訪問看護にて 10 年以上、ご利用者・ご家族との対話を大切に支援してきました。\nチームでの新人育成にも携わっており、現場運営にも貢献できます。",
+      "expected": {
+        "educations": [
+          { "schoolName": "東京都立第一高等学校", "department": "普通科", "graduatedOn": "2003-03" },
+          { "schoolName": "東京都立医療短期大学", "department": "看護学科", "graduatedOn": "2007-03" }
+        ],
+        "careers": [
+          {
+            "company": "みなと総合病院",
+            "role": "内科病棟 看護師",
+            "from": "2007-04",
+            "to": "2013-03",
+            "achievements": "急性期病棟で 3 交代勤務、新人指導を担当"
+          },
+          {
+            "company": "中央訪問看護ステーション",
+            "role": "訪問看護師",
+            "from": "2013-04",
+            "to": "2020-03",
+            "achievements": "単独訪問・記録・ご家族対応。担当利用者 25 名"
+          },
+          {
+            "company": "訪問看護ステーションみどり",
+            "role": "主任",
+            "from": "2020-04",
+            "to": "",
+            "achievements": "シフト管理・OJT 兼務"
+          }
+        ],
+        "skills": [
+          { "name": "訪問看護", "level": 5 },
+          { "name": "ご家族対応", "level": 5 },
+          { "name": "新人指導", "level": 4 },
+          { "name": "電子カルテ", "level": 4 }
+        ],
+        "selfPR": "訪問看護にて 10 年以上、ご利用者・ご家族との対話を大切に支援してきました。チームでの新人育成にも携わっており、現場運営にも貢献できます。"
+      }
+    },
+    {
+      "key": "careworker-young",
+      "label": "介護職・20代・通所介護志望",
+      "text": "履歴書\n氏名: 佐藤 太郎 (さとう たろう)\n生年月日: 2001年6月3日\n性別: 男性\n住所: 神奈川県横浜市港北区0-0\n電話: 080-0000-0000\nメール: taro.example@example.test\n\n■学歴\n2020年3月 神奈川県立中央高等学校 卒業\n2022年3月 横浜介護福祉専門学校 介護福祉学科 卒業\n\n■職歴\n2022年4月〜現在 株式会社さくら デイサービスさくら 介護職員\n  入浴・食事・送迎の介助、レクリエーションの企画運営。\n\n■保有資格\n2022年3月 介護福祉士 (第98765号)\n2020年5月 普通自動車運転免許\n\n■自己 PR\n明るい雰囲気作りと、ご利用者一人ひとりの希望に寄り添う支援を心がけています。",
+      "expected": {
+        "educations": [
+          { "schoolName": "神奈川県立中央高等学校", "department": "普通科", "graduatedOn": "2020-03" },
+          { "schoolName": "横浜介護福祉専門学校", "department": "介護福祉学科", "graduatedOn": "2022-03" }
+        ],
+        "careers": [
+          {
+            "company": "株式会社さくら デイサービスさくら",
+            "role": "介護職員",
+            "from": "2022-04",
+            "to": "",
+            "achievements": "入浴・食事・送迎の介助、レクリエーションの企画運営"
+          }
+        ],
+        "skills": [
+          { "name": "通所介護", "level": 4 },
+          { "name": "送迎運転", "level": 4 },
+          { "name": "レクリエーション", "level": 4 }
+        ],
+        "selfPR": "明るい雰囲気作りと、ご利用者一人ひとりの希望に寄り添う支援を心がけています。"
+      }
+    },
+    {
+      "key": "ja-bachelor-foreign",
+      "label": "看護師・30代・外国籍 (留学経由)",
+      "text": "履歴書\nNAME: Le Thi An (レ・ティ・アン)\nDATE OF BIRTH: 1993-09-15\nGENDER: Female\nADDRESS: Saitama-shi, Saitama 0-0-0\nPHONE: 070-0000-0000\nEMAIL: le.example@example.test\nNATIONALITY: Vietnamese\nVISA: Specified Skilled Worker (Nursing care)\n\nEDUCATION\n2011-09 ~ 2015-06 Hanoi Medical University, Department of Nursing (Bachelor)\n2018-04 ~ 2020-03 Japanese Language School (Tokyo)\n\nCAREER\n2015-08 ~ 2017-12 Hanoi General Hospital, Internal medicine nurse\n2020-04 ~ Present Saitama Care Home Sakura, Care worker (specified skilled)\n  Daily care for residents, communication with families.\n\nCERTIFICATIONS\n2015-07 Bachelor of Nursing\n2020-02 JLPT N2\n2021-04 Certified Care Worker (specified skilled)\n\nSELF PR\nI value patience and respect when working with elderly residents and their families.",
+      "expected": {
+        "educations": [
+          { "schoolName": "Hanoi Medical University", "department": "Department of Nursing", "graduatedOn": "2015-06" },
+          { "schoolName": "Japanese Language School (Tokyo)", "department": "", "graduatedOn": "2020-03" }
+        ],
+        "careers": [
+          {
+            "company": "Hanoi General Hospital",
+            "role": "Internal medicine nurse",
+            "from": "2015-08",
+            "to": "2017-12",
+            "achievements": ""
+          },
+          {
+            "company": "Saitama Care Home Sakura",
+            "role": "Care worker (specified skilled)",
+            "from": "2020-04",
+            "to": "",
+            "achievements": "Daily care for residents, family communication"
+          }
+        ],
+        "skills": [
+          { "name": "Elderly care", "level": 4 },
+          { "name": "Japanese N2", "level": 3 },
+          { "name": "English", "level": 3 }
+        ],
+        "selfPR": "I value patience and respect when working with elderly residents and their families."
+      }
+    }
+  ]
+}

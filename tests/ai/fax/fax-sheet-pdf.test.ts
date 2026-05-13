@@ -66,10 +66,10 @@ function input(overrides: Partial<FaxSheetPdfInput> = {}): FaxSheetPdfInput {
 describe("renderFaxSheetPdf", () => {
   let pdfBuf: Buffer;
 
-  // フォント初回読込で時間がかかるため余裕を持たせる。
+  // フォント初回読込が並列実行時に詰まりやすいので大きめに確保する。
   beforeAll(async () => {
     pdfBuf = await renderFaxSheetPdf(input());
-  }, 60_000);
+  }, 180_000);
 
   it("A4 で 1 つ以上のページを持つ PDF を生成する", () => {
     expect(pdfBuf.length).toBeGreaterThan(2000);

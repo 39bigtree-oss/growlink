@@ -4,6 +4,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { buildDiagnosis } from "@/lib/ai/diagnosis/buildDiagnosis";
+import { enqueueJob } from "@/lib/jobs/registry";
 import { recordAuditLog } from "@/lib/repositories/audit-log";
 
 export const runtime = "nodejs";
@@ -35,6 +36,8 @@ export async function POST(req: Request) {
     );
   }
   const { applicantId, regenerate = false } = parsed.data;
+  const url = new URL(req.url);
+  const isAsync = url.searchParams.get("async") === "1";
 
   const existing = await prisma.diagnosis.findFirst({ where: { applicantId } });
   if (existing && !regenerate) {
@@ -45,6 +48,25 @@ export async function POST(req: Request) {
         pdfUrl: `/api/diagnosis/${applicantId}/pdf`,
       },
       { status: 409 },
+    );
+  }
+
+  if (isAsync) {
+    const { jobId } = await enqueueJob(
+      "diagnosis",
+      "diagnosis.generate",
+      { applicantId },
+      { target: applicantId, dedupeKey: `diagnosis-${applicantId}` },
+    );
+    await recordAuditLog({
+      staffId: session.user.id,
+      action: "diagnosis.queued",
+      target: applicantId,
+      payload: { jobId, regenerated: Boolean(existing) },
+    });
+    return NextResponse.json(
+      { ok: true, async: true, jobId, applicantId },
+      { status: 202 },
     );
   }
 

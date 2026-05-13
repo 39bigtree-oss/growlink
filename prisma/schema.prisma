@@ -154,6 +154,9 @@ model Applicant {
   qualifications    Qualification[]
   diagnoses         Diagnosis[]
   skillSheet        SkillSheet?
+  skillSheetTokens  SkillSheetToken[]
+  resumeUploads     ResumeUpload[]
+  emailLogs         EmailLog[]
   interview         Interview?
   faxSheets         FaxSheet[]
   deletedAt         DateTime?
@@ -201,14 +204,20 @@ model SkillSheet {
   desired      Json
   selfPR       String?
   rawResumeKey String?
+  // 求職者が「途中保存」した時刻。空なら未着手。
+  savedAt      DateTime?
+  // 求職者が「提出」した時刻 = SKILL_SHEET_DONE 相当。
+  submittedAt  DateTime?
   completedAt  DateTime?
+  // 直近の編集者 (自己入力 / OCR 取込 / スタッフ修正) の追跡用。
+  lastEditedBy String? // "applicant" | "ocr" | "staff:<staffId>"
   updatedAt    DateTime  @updatedAt
 }
 
 model Interview {
-  id          String    @id @default(cuid())
-  applicantId String    @unique
-  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
+  applicantId String           @unique
+  applicant   Applicant        @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   callSid     String?
   startedAt   DateTime?
   endedAt     DateTime?
@@ -216,6 +225,69 @@ model Interview {
   transcript  String?
   summary     Json?
   audioKey    String?
+  // Phase 3 で追加。"scheduled" | "in_progress" | "completed" | "failed"
+  status      String           @default("scheduled")
+  // 質問数 (interview.next-question を呼ぶたびにインクリメント)。最大値は INTERVIEW_MAX_TURNS。
+  turnCount   Int              @default(0)
+  channel     String? // "voice" (Twilio) | "text" (Simulator)
+  provider    String? // "mock" | "twilio"
+  language    String           @default("ja")
+  turns       InterviewTurn[]
+  tokens      InterviewToken[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model InterviewTurn {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  turnIndex   Int
+  // "ai" = AI による質問、"applicant" = 求職者の回答
+  role        String
+  text        String    @db.Text
+  audioKey    String?
+  // STT/TTS のプロバイダ名 (provider:model 形式可)。
+  provider    String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([interviewId, turnIndex])
+  @@index([interviewId])
+}
+
+// 求職者向け面接ページの認証トークン。Interview 単位で発行する。
+model InterviewToken {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([interviewId])
+  @@index([expiresAt])
+}
+
+// ジョブキュー (BullMQ / メモリ) の実行ログ。リトライ・失敗追跡用。
+model JobLog {
+  id           String    @id @default(cuid())
+  queue        String // "diagnosis" | "resume" | "interview"
+  jobName      String // ジョブのキー (例: "diagnosis.generate")
+  target       String? // ApplicantId / UploadId / InterviewId などのキー
+  payload      Json?
+  status       String    @default("queued") // "queued" | "active" | "completed" | "failed"
+  attempts     Int       @default(0)
+  errorMessage String?
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([queue, status])
+  @@index([target])
+  @@index([createdAt])
 }
 
 // =====================
@@ -288,4 +360,76 @@ model AuditLog {
   @@index([staffId])
   @@index([createdAt])
   @@index([action])
+}
+
+// =====================
+// Phase 2: スキルシート自動化関連
+// =====================
+
+// 求職者がメールリンクから自分のスキルシートを編集するためのトークン。
+// 申込受付時に 1 件発行し、期限切れ・revoke で無効化する。
+model SkillSheetToken {
+  id          String    @id @default(cuid())
+  applicantId String
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  // 求職者がアクセスした最終時刻 (UX 用に保持。PII 観点では特に問題なし)。
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([applicantId])
+  @@index([expiresAt])
+}
+
+// 履歴書アップロード履歴。OCR ジョブの状態を保持し、SkillSheet にマージするまでを管理する。
+model ResumeUpload {
+  id           String    @id @default(cuid())
+  applicantId  String
+  applicant    Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  // ローカル storage キー (S3 に切替時もこのキーは利用)。
+  fileKey      String
+  mimeType     String
+  bytes        Int
+  // OCR の生テキスト (PII を含むので AI に渡す前にマスクする)。
+  rawText      String?   @db.Text
+  // Claude で構造化したスキルシート JSON。SkillSheet にマージする前段の保持先。
+  parsedJson   Json?
+  // OCR / 構造化のプロバイダ名 (mock / docai / claude 等)。
+  ocrProvider  String?
+  llmProvider  String?
+  // "uploaded" | "ocr_running" | "ocr_done" | "ocr_failed" | "merged"
+  status       String    @default("uploaded")
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([applicantId])
+  @@index([status])
+}
+
+// 送信したメールの監査・再送・確認のための保管庫。
+// 本文はサニタイズ前の生本文を保存しないこと (件名・概要・宛先マスクのみ)。
+model EmailLog {
+  id           String     @id @default(cuid())
+  applicantId  String?
+  applicant    Applicant? @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  // 例: "applicant.receipt" / "applicant.skill_sheet_invite" / "staff.notification"
+  template     String
+  toMasked     String
+  subject      String
+  // 言語コード (ja / en / vi / id / zh)
+  locale       String     @default("ja")
+  provider     String     @default("mock")
+  // .storage/sent-emails/<id>.eml に書き出した場合の相対パス。
+  storedKey    String?
+  status       String     @default("queued") // queued | sent | failed
+  errorMessage String?
+  sentAt       DateTime?
+  createdAt    DateTime   @default(now())
+
+  @@index([applicantId])
+  @@index([template])
+  @@index([status])
 }

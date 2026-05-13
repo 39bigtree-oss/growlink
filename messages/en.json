@@ -1,0 +1,118 @@
+{
+  "common": {
+    "save": "Save",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "uploading": "Uploading...",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loading": "Loading...",
+    "required": "Required",
+    "optional": "Optional",
+    "language": "Language",
+    "logo": "Growlink"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "id": "Bahasa Indonesia",
+    "zh": "中文"
+  },
+  "skillSheet": {
+    "pageTitle": "Skill Sheet",
+    "intro": "Thank you for applying. Please fill in your skill sheet. You can save your progress at any time.",
+    "expired": "This link has expired or has been revoked. Please contact your consultant.",
+    "alreadySubmitted": "Your skill sheet has already been submitted. To edit, please contact your consultant.",
+    "tabs": {
+      "education": "Education",
+      "career": "Career",
+      "skills": "Skills",
+      "desired": "Preferences",
+      "selfPR": "Self PR",
+      "resume": "Upload Resume"
+    },
+    "education": {
+      "title": "Education",
+      "addRow": "Add education",
+      "schoolName": "School",
+      "department": "Major / Department",
+      "graduatedOn": "Graduation (YYYY-MM)",
+      "remove": "Remove"
+    },
+    "career": {
+      "title": "Career",
+      "addRow": "Add career",
+      "company": "Company",
+      "role": "Role / Responsibilities",
+      "from": "Joined (YYYY-MM)",
+      "to": "Left (blank if current)",
+      "achievements": "Key achievements"
+    },
+    "skills": {
+      "title": "Skills",
+      "addRow": "Add skill",
+      "name": "Skill name",
+      "level": "Level (1-5)"
+    },
+    "desired": {
+      "title": "Preferences",
+      "areas": "Preferred locations (prefecture / city)",
+      "schedule": "Preferred schedule",
+      "scheduleHint": "e.g. 3 days / week, day shifts, night-shift OK",
+      "startMonth": "Preferred start date (YYYY-MM)",
+      "salary": "Desired annual salary (man yen)",
+      "notes": "Other preferences"
+    },
+    "selfPR": {
+      "title": "Self PR",
+      "placeholder": "Tell us about your strengths in up to 400 characters.",
+      "remaining": "{n} characters remaining"
+    },
+    "resume": {
+      "title": "Upload your resume",
+      "description": "PDF / images (PNG, JPG) supported. We will extract your education and career history using AI and fill in the form. Please review the results yourself.",
+      "pickFile": "Select file",
+      "processing": "Processing... (this may take 1-2 minutes)",
+      "done": "Processing complete. Please review each tab.",
+      "error": "Processing failed. Please try another file.",
+      "tooLarge": "File too large (max 10 MB)",
+      "wrongType": "Unsupported file type"
+    },
+    "actions": {
+      "savePartial": "Save draft",
+      "submit": "Submit this skill sheet",
+      "submitConfirm": "Once submitted, you cannot edit. Continue?",
+      "submitted": "Thank you for submitting. Your consultant will be in touch."
+    },
+    "validation": {
+      "required": "Required",
+      "tooLong": "Too long",
+      "invalidDate": "Invalid date format"
+    }
+  },
+  "interview": {
+    "pageTitle": "AI Interview",
+    "intro": "Our AI interviewer will ask about 5 short questions. It takes 10-15 minutes.",
+    "expired": "This link has expired or has been revoked. Please contact your consultant.",
+    "alreadyCompleted": "Your AI interview has already been completed. Please contact your consultant for any changes.",
+    "start": "Start interview",
+    "ask": "Next question",
+    "answer": "Submit answer",
+    "end": "End interview",
+    "endConfirm": "End the interview now. Continue?",
+    "thanks": "Thanks for your answers. Your consultant will be in touch.",
+    "yourAnswer": "Your answer",
+    "ai": "AI",
+    "you": "You",
+    "turnLabel": "Question {n} / {total}",
+    "progress": "Progress"
+  },
+  "email": {
+    "footer": {
+      "company": "Growlink Inc.",
+      "contact": "This email is send-only. Please contact your consultant for inquiries."
+    }
+  }
+}

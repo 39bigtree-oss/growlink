@@ -22,6 +22,9 @@ import { FACILITY_CATEGORY_OPTIONS } from "@/lib/constants/applicant-options";
 import { prisma } from "@/lib/db";
 
 import { ApplicantTimeline, type TimelineEvent } from "./_timeline";
+import { buildSkillSheetTabData } from "./_skill-sheet-data";
+import { SkillSheetTab } from "./_skill-sheet-tab";
+import { InterviewTab } from "./_interview-tab";
 import { StatusTransitionButtons } from "./_status-transition";
 
 export const metadata = { title: "申込詳細 | グロウリンク" };
@@ -46,6 +49,15 @@ export default async function ApplicantDetailPage({
     include: {
       qualifications: true,
       diagnoses: { orderBy: { score: "desc" } },
+      skillSheet: true,
+      resumeUploads: { orderBy: { createdAt: "desc" } },
+      skillSheetTokens: { orderBy: { createdAt: "desc" } },
+      interview: {
+        include: {
+          turns: { orderBy: { turnIndex: "asc" } },
+          tokens: { orderBy: { createdAt: "desc" } },
+        },
+      },
       faxSheets: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -57,6 +69,43 @@ export default async function ApplicantDetailPage({
   });
   if (!applicant) notFound();
   const canFaxCreate = hasCapability(staff.role, "fax:create");
+  const canInterviewWrite = hasCapability(staff.role, "interviews:write");
+
+  const interviewTabData = {
+    interview: applicant.interview
+      ? {
+          id: applicant.interview.id,
+          status: applicant.interview.status,
+          channel: applicant.interview.channel,
+          provider: applicant.interview.provider,
+          language: applicant.interview.language,
+          startedAt: applicant.interview.startedAt,
+          endedAt: applicant.interview.endedAt,
+          durationSec: applicant.interview.durationSec,
+          transcript: applicant.interview.transcript,
+          summary: applicant.interview.summary,
+          turns: applicant.interview.turns.map((t) => ({
+            turnIndex: t.turnIndex,
+            role: t.role,
+            text: t.text,
+            createdAt: t.createdAt,
+          })),
+          activeToken: (() => {
+            const now = Date.now();
+            const t = applicant.interview.tokens.find(
+              (tt) => !tt.revokedAt && tt.expiresAt.getTime() > now,
+            );
+            return t ? { token: t.token, expiresAt: t.expiresAt } : null;
+          })(),
+        }
+      : null,
+  };
+
+  const skillSheetTabData = buildSkillSheetTabData({
+    skillSheet: applicant.skillSheet ?? null,
+    resumes: applicant.resumeUploads ?? [],
+    tokens: applicant.skillSheetTokens ?? [],
+  });
 
   // 監査ログから「この申込に関するイベント」だけを時系列で抽出。
   const auditEvents = await prisma.auditLog.findMany({
@@ -236,18 +285,18 @@ export default async function ApplicantDetailPage({
           </TabsContent>
 
           <TabsContent value="skill-sheet">
-            <PlaceholderCard
-              title="スキルシート"
-              phase="Phase 2"
-              description="本人入力 / 履歴書 OCR からの自動生成 / 多言語入力対応をここに表示します。"
+            <SkillSheetTab
+              applicantId={applicant.id}
+              data={skillSheetTabData}
+              canWrite={canWrite}
             />
           </TabsContent>
 
           <TabsContent value="interview">
-            <PlaceholderCard
-              title="AI 電話面接"
-              phase="Phase 3"
-              description="Twilio + Whisper + Claude による AI 電話面接の発信履歴・文字起こし・要約をここに表示します。"
+            <InterviewTab
+              applicantId={applicant.id}
+              data={interviewTabData}
+              canWrite={canInterviewWrite}
             />
           </TabsContent>
 
@@ -352,22 +401,3 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlaceholderCard({
-  title,
-  phase,
-  description,
-}: {
-  title: string;
-  phase: string;
-  description: string;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription>{phase} で実装予定です。</CardDescription>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">{description}</CardContent>
-    </Card>
-  );
-}

@@ -94,9 +94,9 @@ pnpm lint && pnpm typecheck
 
 詳細は `docs/design.md` を参照。
 
-- Phase 1: MVP(申込フォーム+AI診断+FAX手動生成)
-- Phase 2: スキルシート自動化(本人入力+履歴書OCR)
-- Phase 3: AI 電話面接(Twilio + Whisper + Claude + TTS)
+- Phase 1: MVP(申込フォーム+AI診断+FAX手動生成) ✅ 完了
+- Phase 2: スキルシート自動化(本人入力+履歴書OCR) ✅ 完了
+- Phase 3: AI 電話面接(Twilio + Whisper + Claude + TTS) ✅ 完了
 - Phase 4: 営業自動化(FAX一括送信+返信トラッキング)
 - Phase 5: 外国人対応(多言語化+在留資格管理)
 
