@@ -18,6 +18,7 @@ import { recordAuditLog } from "@/lib/repositories/audit-log";
 import { placementFormSchema } from "@/lib/schemas/placement";
 
 export type CreatePlacementState = { ok: boolean; message?: string };
+export type AttritionState = { ok: boolean; message?: string };
 
 /**
  * 紹介成立 (Placement) を 1 件作成する。
@@ -184,4 +185,60 @@ export async function createPlacementAction(
   ]);
   revalidatePath("/admin/placements");
   redirect(`/admin/placements/${placement.id}`);
+}
+
+/**
+ * 退職実績の登録 / 解除。空欄送信で「退職記録をクリア」。
+ * 同時に、退職時に Placement.feeStatus / 返金額の自動再計算も行う想定だが
+ * v1.8 では status だけ書き換え。返金処理は会計連携 (v1.9) と合わせて。
+ */
+export async function setAttritionAction(
+  placementId: string,
+  _prev: AttritionState,
+  formData: FormData,
+): Promise<AttritionState> {
+  const session = await auth();
+  if (!session?.user) return { ok: false, message: "ログインが必要です" };
+  if (!hasCapability(session.user.role, "placements:write")) {
+    return { ok: false, message: "編集権限がありません" };
+  }
+  const raw = String(formData.get("attritionAt") ?? "").trim();
+  const next = raw ? new Date(raw) : null;
+  if (raw && Number.isNaN(next?.getTime() ?? NaN)) {
+    return { ok: false, message: "退職日の形式が正しくありません" };
+  }
+  const before = await prisma.placement.findUnique({
+    where: { id: placementId },
+    select: { attritionAt: true, feeStatus: true },
+  });
+  if (!before) return { ok: false, message: "Placement が見つかりません" };
+
+  await prisma.placement.update({
+    where: { id: placementId },
+    data: { attritionAt: next },
+  });
+  await Promise.all([
+    recordAuditLog({
+      staffId: session.user.id,
+      action: next ? "placement.attrition.set" : "placement.attrition.clear",
+      target: placementId,
+      payload: { attritionAt: next?.toISOString() ?? null },
+    }),
+    recordAuditEvent(prisma, {
+      actorStaffId: session.user.id,
+      actorEmail: session.user.email ?? null,
+      action: next ? "placement.attrition.set" : "placement.attrition.clear",
+      entityType: "Placement",
+      entityId: placementId,
+      before: { attritionAt: before.attritionAt?.toISOString() ?? null },
+      after: { attritionAt: next?.toISOString() ?? null },
+    }),
+  ]);
+  revalidatePath(`/admin/placements/${placementId}`);
+  revalidatePath("/admin/placements");
+  revalidatePath("/admin/dashboard");
+  return {
+    ok: true,
+    message: next ? "退職日を記録しました" : "退職記録をクリアしました",
+  };
 }

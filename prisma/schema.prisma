@@ -141,6 +141,28 @@ enum MyNumberAccessAction {
   EXPORT
 }
 
+// v1.8: ナーチャシナリオ
+enum NurtureTrigger {
+  FAX_SENT_NO_REPLY
+  SKILL_SHEET_INVITED_NO_SUBMIT
+  INTEREST_RECEIVED
+  PLACEMENT_1MONTH
+  PLACEMENT_3MONTH
+}
+
+enum NurtureStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  PAUSED
+}
+
+enum NurtureStepKind {
+  EMAIL
+  STAFF_TODO
+  WAIT
+}
+
 // =====================
 // Auth.js (NextAuth v5) 標準スキーマ
 // 参考: https://authjs.dev/getting-started/adapters/prisma
@@ -249,6 +271,8 @@ model Applicant {
   placements        Placement[]
   dispatchLedgers   DispatchLedger[]
   myNumberRecord    MyNumberRecord?
+  // v1.8: ナーチャシナリオ
+  nurtureSequences  NurtureSequence[]
   deletedAt         DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -385,7 +409,7 @@ model JobLog {
 // =====================
 
 model Facility {
-  id              String           @id @default(cuid())
+  id              String                @id @default(cuid())
   name            String
   category        FacilityCategory
   prefecture      String
@@ -393,8 +417,11 @@ model Facility {
   address         String
   fax             String?
   email           String?
-  isFaxPublic     Boolean          @default(false)
+  isFaxPublic     Boolean               @default(false)
   notes           String?
+  // v1.8: 緯度経度 (Haversine 距離マッチング用、optional)
+  lat             Float?
+  lng             Float?
   faxSheets       FaxSheet[]
   reactions       FaxReaction[]
   // Phase 6: 求人案件 / 契約 / 請求書 / 紹介成立 / 派遣台帳 を Facility に紐付け
@@ -403,7 +430,9 @@ model Facility {
   invoices        Invoice[]
   placements      Placement[]
   dispatchLedgers DispatchLedger[]
-  createdAt       DateTime         @default(now())
+  // v1.8: 施設ポータルトークン
+  portalTokens    FacilityPortalToken[]
+  createdAt       DateTime              @default(now())
 
   @@index([category])
   @@index([prefecture])
@@ -640,26 +669,28 @@ model Contract {
 
 // 紹介成立 (Applicant × Facility × JobOrder × Contract)。
 model Placement {
-  id              String             @id @default(cuid())
-  applicantId     String
-  applicant       Applicant          @relation(fields: [applicantId], references: [id])
-  facilityId      String
-  facility        Facility           @relation(fields: [facilityId], references: [id])
-  jobOrderId      String
-  jobOrder        JobOrder           @relation(fields: [jobOrderId], references: [id])
-  contractId      String
-  contract        Contract           @relation(fields: [contractId], references: [id])
-  startDate       DateTime
-  endDate         DateTime?
-  monthlyWage     Decimal            @db.Decimal(12, 2)
-  introductionFee Decimal            @db.Decimal(12, 2)
-  feeStatus       PlacementFeeStatus @default(PENDING)
-  refundDueDate   DateTime?
-  attritionAt     DateTime?
-  invoices        Invoice[]
-  dispatchLedger  DispatchLedger?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id               String             @id @default(cuid())
+  applicantId      String
+  applicant        Applicant          @relation(fields: [applicantId], references: [id])
+  facilityId       String
+  facility         Facility           @relation(fields: [facilityId], references: [id])
+  jobOrderId       String
+  jobOrder         JobOrder           @relation(fields: [jobOrderId], references: [id])
+  contractId       String
+  contract         Contract           @relation(fields: [contractId], references: [id])
+  startDate        DateTime
+  endDate          DateTime?
+  monthlyWage      Decimal            @db.Decimal(12, 2)
+  introductionFee  Decimal            @db.Decimal(12, 2)
+  feeStatus        PlacementFeeStatus @default(PENDING)
+  refundDueDate    DateTime?
+  attritionAt      DateTime?
+  invoices         Invoice[]
+  dispatchLedger   DispatchLedger?
+  // v1.8: ナーチャシナリオ (入社後フォローアップ)
+  nurtureSequences NurtureSequence[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([applicantId])
   @@index([facilityId])
@@ -782,5 +813,84 @@ model AuditEvent {
   @@index([action])
   @@index([entityType, entityId])
   @@index([actorStaffId])
+  @@index([createdAt])
+}
+
+// =====================
+// v1.8: 施設ポータル / ナーチャシナリオ / 監査チェックポイント
+// =====================
+
+// 施設へ送る "ログイン不要" のポータルアクセストークン。HMAC で署名。
+// 期限切れ・revoke 可能。1 施設に複数発行できる (営業担当別など)。
+model FacilityPortalToken {
+  id          String    @id @default(cuid())
+  facilityId  String
+  facility    Facility  @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  label       String? // "8月配布分" など
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  lastSeenAt  DateTime?
+  accessCount Int       @default(0)
+  createdAt   DateTime  @default(now())
+  createdBy   String? // Staff.id (誰が発行したか)
+
+  @@index([facilityId])
+  @@index([expiresAt])
+}
+
+// 自動化シナリオ。Applicant or Placement に紐付き、ステップを順次実行。
+model NurtureSequence {
+  id          String                 @id @default(cuid())
+  applicantId String?
+  applicant   Applicant?             @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  placementId String?
+  placement   Placement?             @relation(fields: [placementId], references: [id], onDelete: SetNull)
+  trigger     NurtureTrigger
+  status      NurtureStatus          @default(ACTIVE)
+  // ステップ定義 (JSON): [{ kind, label, waitDays, emailTemplate?, todoMessage? }, ...]
+  steps       Json
+  currentStep Int                    @default(0)
+  startedAt   DateTime               @default(now())
+  nextRunAt   DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+  notes       String?
+  executions  NurtureStepExecution[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([status])
+  @@index([nextRunAt])
+  @@index([trigger])
+  @@index([applicantId])
+}
+
+model NurtureStepExecution {
+  id         String          @id @default(cuid())
+  sequenceId String
+  sequence   NurtureSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  stepIndex  Int
+  kind       NurtureStepKind
+  executedAt DateTime        @default(now())
+  result     String // "ok" | "skipped" | "failed:<reason>"
+  payload    Json? // 送信した EmailMessage の概要など
+
+  @@index([sequenceId])
+  @@index([executedAt])
+}
+
+// 監査チェーンのチェックポイント。スナップショット時点までの整合性を保証する。
+// verifyChainSince(checkpoint) で差分のみ検証 → スケール問題を回避。
+model AuditCheckpoint {
+  id             String   @id @default(cuid())
+  // チェックポイント時点までに記録された AuditEvent の最終 hash
+  lastEventHash  String
+  // チェックポイント時点での AuditEvent 件数 (差分検証時に使う)
+  eventCountAtCp Int
+  // ノート (運用者の手動チェックポイント時の理由など)
+  note           String?
+  createdAt      DateTime @default(now())
+
   @@index([createdAt])
 }
