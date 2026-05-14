@@ -4,6 +4,29 @@
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-14
+
+### Added — 運用イメージのリッチプレビュー
+
+- **AI 診断タブの表示を全面強化**:
+  - 11 業態のスコアを **横棒バー (ランク別色分け)** で視覚化
+  - 各業態に「向いている点 / 留意点」コメントを併記
+  - 求職者に送信される **診断 PDF を iframe で画面内に直接プレビュー** (A4 2 枚)
+- **FAX タブの表示を強化**:
+  - 最新の FAX 送信票を **iframe で画面内プレビュー** (実際に施設へ送信される現物)
+  - 送信履歴テーブルは併存
+- **Seed を全 status 別サンプルに強化**:
+  - 既存の applicant1 / applicant2 と追加 6 名の各 status に対応する完成データ
+  - `SKILL_SHEET_INPROGRESS` / `SKILL_SHEET_DONE` / `INTERVIEW_DONE` / `SALES_READY` / `IN_INTRODUCTION` / `CONTRACTED` ごとに想定される実運用データが入る
+  - **11 業態フル診断** (mock provider のロジックを seed で決定論的に再現)
+  - 各サンプルに対応する SkillSheet / Interview (5 ターン + サマリ) / FaxSheet (3 件) / FaxReaction を生成
+
+### Changed — セキュリティヘッダ
+
+- `X-Frame-Options: DENY` → **`SAMEORIGIN`** に変更 (同一オリジン内の PDF iframe を許可)
+- CSP に `frame-src 'self'` と `frame-ancestors 'self'` を追加
+- これにより `/admin/applicants/[id]` 内で診断 PDF / FAX PDF を iframe で表示できる
+
 ## [1.2.0] — 2026-05-14
 
 ### Changed — 完全社内向け SaaS にリブート

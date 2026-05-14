@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -244,36 +245,63 @@ export default async function ApplicantDetailPage({
               </CardHeader>
               <CardContent>
                 {hasDiagnosis ? (
-                  <div className="space-y-3">
-                    <iframe
-                      src={`/api/diagnosis/${applicant.id}/pdf`}
-                      title="診断 PDF プレビュー"
-                      className="h-[480px] w-full rounded-md border"
-                    />
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b text-left text-muted-foreground">
-                            <th className="py-1 pr-2">業態</th>
-                            <th className="py-1 pr-2">スコア</th>
-                            <th className="py-1 pr-2">ランク</th>
-                            <th className="py-1 pr-2">向いている理由</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {applicant.diagnoses.map((d) => (
-                            <tr key={d.id} className="border-b last:border-0">
-                              <td className="py-1 pr-2">
-                                {CATEGORY_LABELS[d.category] ?? d.category}
-                              </td>
-                              <td className="py-1 pr-2">{d.score}</td>
-                              <td className="py-1 pr-2 font-semibold">{d.rank}</td>
-                              <td className="py-1 pr-2">{d.proComment}</td>
-                            </tr>
+                  <div className="space-y-5">
+                    {/* v1.3: 11 業態の視覚的スコアバー (実運用イメージで一目で見られる) */}
+                    <section>
+                      <h3 className="mb-2 text-sm font-semibold">業態別スコア</h3>
+                      <p className="mb-3 text-xs text-muted-foreground">
+                        スコア (0〜100) を視覚化。スコアが高い業態ほど候補者にフィットしやすいと判定されています。
+                      </p>
+                      <ul className="space-y-2">
+                        {[...applicant.diagnoses]
+                          .sort((a, b) => b.score - a.score)
+                          .map((d) => (
+                            <li key={d.id} className="space-y-1">
+                              <div className="flex items-center justify-between gap-3 text-xs">
+                                <span className="font-medium">
+                                  {CATEGORY_LABELS[d.category] ?? d.category}
+                                </span>
+                                <span className="flex items-center gap-2">
+                                  <span className="tabular-nums text-muted-foreground">
+                                    {d.score}
+                                  </span>
+                                  <RankPill rank={d.rank} />
+                                </span>
+                              </div>
+                              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    rankBarColor(d.rank),
+                                  )}
+                                  style={{ width: `${Math.min(100, d.score)}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">向いている点: </span>
+                                {d.proComment}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">留意点: </span>
+                                {d.conComment}
+                              </p>
+                            </li>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
+                      </ul>
+                    </section>
+
+                    {/* v1.3: PDF プレビュー埋め込み (求職者にメール添付で送られる現物) */}
+                    <section>
+                      <h3 className="mb-1 text-sm font-semibold">求職者に送信される診断 PDF</h3>
+                      <p className="mb-3 text-xs text-muted-foreground">
+                        新規登録時に、下記の A4 2 枚の PDF が招待メールに自動で添付されて求職者へ送信されます。
+                      </p>
+                      <iframe
+                        src={`/api/diagnosis/${applicant.id}/pdf`}
+                        title="診断 PDF プレビュー"
+                        className="h-[640px] w-full rounded-md border"
+                      />
+                    </section>
                   </div>
                 ) : (
                   <CardDescription>
@@ -318,57 +346,81 @@ export default async function ApplicantDetailPage({
                     この求職者の FAX 送信票はまだ作成されていません。
                   </CardDescription>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b text-left text-muted-foreground">
-                          <th className="py-1 pr-2">施設</th>
-                          <th className="py-1 pr-2">ステータス</th>
-                          <th className="py-1 pr-2">反応</th>
-                          <th className="py-1 pr-2">作成日</th>
-                          <th className="py-1 pr-2">送信日</th>
-                          <th className="py-1 pr-2 text-right">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {applicant.faxSheets.map((s) => (
-                          <tr key={s.id} className="border-b last:border-0">
-                            <td className="py-1 pr-2">
-                              <div className="font-medium">{s.facility.name}</div>
-                              <div className="text-muted-foreground">
-                                {s.facility.prefecture}
-                                {s.facility.city}
-                              </div>
-                            </td>
-                            <td className="py-1 pr-2">
-                              <Badge variant="muted">{s.status}</Badge>
-                            </td>
-                            <td className="py-1 pr-2">
-                              {s.reaction
-                                ? s.reaction.interested
-                                  ? "興味あり"
-                                  : "辞退"
-                                : "未返信"}
-                            </td>
-                            <td className="py-1 pr-2">{s.createdAt.toISOString().slice(0, 10)}</td>
-                            <td className="py-1 pr-2">
-                              {s.sentAt ? s.sentAt.toISOString().slice(0, 10) : "─"}
-                            </td>
-                            <td className="py-1 pr-2 text-right">
-                              <Button asChild size="sm" variant="outline">
-                                <a
-                                  href={`/api/fax-sheets/${s.id}/pdf`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  PDF
-                                </a>
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-5">
+                    {/* v1.3: 最新の FAX 送信票を PDF で大きくプレビュー (実運用の現物) */}
+                    <section>
+                      <h3 className="mb-1 text-sm font-semibold">
+                        最新の FAX 送信票プレビュー
+                      </h3>
+                      <p className="mb-3 text-xs text-muted-foreground">
+                        宛先: {applicant.faxSheets[0].facility.name} (
+                        {applicant.faxSheets[0].facility.prefecture}
+                        {applicant.faxSheets[0].facility.city}) — 下記の A4 2 枚が施設に送信されます。
+                      </p>
+                      <iframe
+                        src={`/api/fax-sheets/${applicant.faxSheets[0].id}/pdf`}
+                        title="FAX 送信票 プレビュー"
+                        className="h-[640px] w-full rounded-md border"
+                      />
+                    </section>
+
+                    <section>
+                      <h3 className="mb-2 text-sm font-semibold">送信履歴一覧</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b text-left text-muted-foreground">
+                              <th className="py-1 pr-2">施設</th>
+                              <th className="py-1 pr-2">ステータス</th>
+                              <th className="py-1 pr-2">反応</th>
+                              <th className="py-1 pr-2">作成日</th>
+                              <th className="py-1 pr-2">送信日</th>
+                              <th className="py-1 pr-2 text-right">操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {applicant.faxSheets.map((s) => (
+                              <tr key={s.id} className="border-b last:border-0">
+                                <td className="py-1 pr-2">
+                                  <div className="font-medium">{s.facility.name}</div>
+                                  <div className="text-muted-foreground">
+                                    {s.facility.prefecture}
+                                    {s.facility.city}
+                                  </div>
+                                </td>
+                                <td className="py-1 pr-2">
+                                  <Badge variant="muted">{s.status}</Badge>
+                                </td>
+                                <td className="py-1 pr-2">
+                                  {s.reaction
+                                    ? s.reaction.interested
+                                      ? "興味あり"
+                                      : "辞退"
+                                    : "未返信"}
+                                </td>
+                                <td className="py-1 pr-2">
+                                  {s.createdAt.toISOString().slice(0, 10)}
+                                </td>
+                                <td className="py-1 pr-2">
+                                  {s.sentAt ? s.sentAt.toISOString().slice(0, 10) : "─"}
+                                </td>
+                                <td className="py-1 pr-2 text-right">
+                                  <Button asChild size="sm" variant="outline">
+                                    <a
+                                      href={`/api/fax-sheets/${s.id}/pdf`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      PDF
+                                    </a>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
                   </div>
                 )}
               </CardContent>
@@ -401,3 +453,38 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+
+function RankPill({ rank }: { rank: string }) {
+  const palette: Record<string, string> = {
+    S: "bg-emerald-100 text-emerald-900 border-emerald-200",
+    A: "bg-sky-100 text-sky-900 border-sky-200",
+    B: "bg-amber-100 text-amber-900 border-amber-200",
+    C: "bg-orange-100 text-orange-900 border-orange-200",
+    D: "bg-zinc-100 text-zinc-700 border-zinc-200",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex h-5 min-w-[1.5rem] items-center justify-center rounded-full border px-1.5 text-[10px] font-bold",
+        palette[rank] ?? palette.D,
+      )}
+    >
+      {rank}
+    </span>
+  );
+}
+
+function rankBarColor(rank: string): string {
+  switch (rank) {
+    case "S":
+      return "bg-emerald-500";
+    case "A":
+      return "bg-sky-500";
+    case "B":
+      return "bg-amber-500";
+    case "C":
+      return "bg-orange-500";
+    default:
+      return "bg-zinc-400";
+  }
+}
