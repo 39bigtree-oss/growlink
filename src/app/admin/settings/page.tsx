@@ -6,7 +6,7 @@ export const metadata = { title: "設定 | グロウリンク" };
 export default async function SettingsPage() {
   await requireAdminSession("settings:read");
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <h1 className="text-2xl font-bold tracking-tight">設定</h1>
       <Card>
         <CardHeader>

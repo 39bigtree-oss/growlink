@@ -27,7 +27,7 @@ export default async function MyNumberDetailPage({
   const record = await findMyNumberByApplicantId(applicantId);
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-bold">
           {applicant.lastName} {applicant.firstName} のマイナンバー
@@ -40,8 +40,15 @@ export default async function MyNumberDetailPage({
 
       {!record ? (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">
-            この求職者のマイナンバーは登録されていません。
+          <CardContent className="space-y-3 pt-6 text-sm text-muted-foreground">
+            <p>この求職者のマイナンバーは登録されていません。</p>
+            {staff.role === "ADMIN" ? (
+              <Button asChild>
+                <Link href={`/admin/my-numbers/${applicantId}/new`}>マイナンバーを登録</Link>
+              </Button>
+            ) : (
+              <p className="text-xs">登録は ADMIN 専用です。</p>
+            )}
           </CardContent>
         </Card>
       ) : (

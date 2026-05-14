@@ -46,7 +46,7 @@ export default async function FacilitiesListPage({
     countFacilities({ q, prefecture, city, category: validCategory, faxPublicOnly: faxOnly }),
   ]);
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">施設マスタ</h1>

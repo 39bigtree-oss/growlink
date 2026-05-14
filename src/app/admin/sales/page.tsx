@@ -68,7 +68,7 @@ export default async function SalesHubPage() {
   ]);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 md:p-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">営業フロー</h1>
         <p className="text-sm text-muted-foreground">

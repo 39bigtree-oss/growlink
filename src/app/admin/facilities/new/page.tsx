@@ -9,7 +9,7 @@ export const metadata = { title: "施設新規作成 | グロウリンク" };
 export default async function NewFacilityPage() {
   await requireAdminSession("facilities:write");
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <h1 className="text-2xl font-bold tracking-tight">施設を新規作成</h1>
       <Card>
         <CardHeader>

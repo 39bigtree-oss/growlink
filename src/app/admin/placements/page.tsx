@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { hasCapability } from "@/lib/auth/rbac";
 import { requireAdminSession } from "@/lib/auth/session";
 import { countPlacements, listPlacements } from "@/lib/repositories/placement";
 
@@ -26,16 +27,24 @@ const FEE_STATUS_LABEL: Record<string, string> = {
 };
 
 export default async function PlacementsListPage() {
-  await requireAdminSession("placements:read");
+  const staff = await requireAdminSession("placements:read");
+  const canWrite = hasCapability(staff.role, "placements:write");
   const [items, total] = await Promise.all([listPlacements({ take: 200 }), countPlacements()]);
 
   return (
-    <div className="space-y-5 p-6">
-      <header>
-        <h1 className="text-2xl font-bold">紹介成立</h1>
-        <p className="text-sm text-muted-foreground">
-          求職者 × 施設 × 求人案件 × 契約 の組み合わせで成立した紹介。手数料の請求・入金状況を追跡。
-        </p>
+    <div className="space-y-5 p-4 md:p-6">
+      <header className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
+        <div>
+          <h1 className="text-2xl font-bold">紹介成立</h1>
+          <p className="text-sm text-muted-foreground">
+            求職者 × 施設 × 求人案件 × 契約 の組み合わせで成立した紹介。手数料の請求・入金状況を追跡。
+          </p>
+        </div>
+        {canWrite ? (
+          <Button asChild>
+            <Link href="/admin/placements/new">紹介成立を作成</Link>
+          </Button>
+        ) : null}
       </header>
 
       <Card>

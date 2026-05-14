@@ -62,7 +62,7 @@ export default async function ApplicantsListPage({
 
   const canWrite = hasCapability(staff.role, "applicants:write");
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">申込一覧</h1>
