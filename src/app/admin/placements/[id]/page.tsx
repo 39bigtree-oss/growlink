@@ -4,6 +4,11 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  BAND_LABEL,
+  BAND_VARIANT,
+  scoreAttritionRisk,
+} from "@/lib/analytics/attrition-risk";
 import { applyRefund } from "@/lib/billing/calc";
 import { requireAdminSession } from "@/lib/auth/session";
 import { findPlacementById } from "@/lib/repositories/placement";
@@ -25,6 +30,17 @@ export default async function PlacementDetailPage({
     ? (p.contract.refundPolicy.tiers as RefundTier[])
     : [];
 
+  // 退職予兆スコア
+  const risk = scoreAttritionRisk({
+    startDate: p.startDate,
+    attritionAt: p.attritionAt,
+    monthlyWage: Number(p.monthlyWage),
+    employmentType: p.jobOrder.employmentType,
+    experienceYears: 0, // SkillSheet 連携は v1.7
+    desiredMonthlyWage: null,
+    shiftFitAxes: null,
+  });
+
   // 退職予定で返金規定がどう適用されるかのシミュレーション (attritionAt があれば実値、無ければ "今日" 退職想定)
   const simulationAttrition = p.attritionAt ?? new Date();
   const refundSim = tiers.length
@@ -37,7 +53,7 @@ export default async function PlacementDetailPage({
     : null;
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-bold">
           紹介成立: {p.applicant.lastName} {p.applicant.firstName}
@@ -89,6 +105,59 @@ export default async function PlacementDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">退職予兆スコア</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl font-bold tabular-nums">{risk.score}</div>
+            <Badge variant={BAND_VARIANT[risk.band]}>{BAND_LABEL[risk.band]}</Badge>
+            <span className="text-xs text-muted-foreground">
+              入社から {risk.monthsElapsed} ヶ月経過
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-3">
+            <div className="rounded border bg-muted/30 p-2">
+              <div className="text-muted-foreground">在籍月数カーブ</div>
+              <div className="font-semibold">+{risk.contributors.tenureCurve}</div>
+            </div>
+            <div className="rounded border bg-muted/30 p-2">
+              <div className="text-muted-foreground">雇用形態</div>
+              <div className="font-semibold">+{risk.contributors.employmentType}</div>
+            </div>
+            <div className="rounded border bg-muted/30 p-2">
+              <div className="text-muted-foreground">給与ギャップ</div>
+              <div className="font-semibold">+{risk.contributors.wageGap}</div>
+            </div>
+            <div className="rounded border bg-muted/30 p-2">
+              <div className="text-muted-foreground">シフトミスマッチ</div>
+              <div className="font-semibold">+{risk.contributors.shiftMismatch}</div>
+            </div>
+            <div className="rounded border bg-muted/30 p-2">
+              <div className="text-muted-foreground">経験不足</div>
+              <div className="font-semibold">+{risk.contributors.experienceLow}</div>
+            </div>
+            {risk.contributors.realized > 0 ? (
+              <div className="rounded border border-destructive bg-destructive/10 p-2">
+                <div className="text-muted-foreground">退職実績</div>
+                <div className="font-semibold">+{risk.contributors.realized}</div>
+              </div>
+            ) : null}
+          </div>
+          {risk.reasons.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              {risk.reasons.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="text-xs text-muted-foreground">
+            ※ v1.6 はルールベース計算。退職実績データが十分溜まったら v2.0 で ML モデルに置換予定。
+          </p>
+        </CardContent>
+      </Card>
 
       {p.dispatchLedger ? (
         <Card>

@@ -57,7 +57,7 @@ export default async function JobOrderDetailPage({
   const updateAction = updateJobOrderAction.bind(null, id);
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{jo.title}</h1>

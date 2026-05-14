@@ -38,7 +38,7 @@ export default async function JobOrdersListPage() {
   const [items, total] = await Promise.all([listJobOrders({ take: 100 }), countJobOrders()]);
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">求人案件</h1>

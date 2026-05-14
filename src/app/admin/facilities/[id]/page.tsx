@@ -27,7 +27,7 @@ export default async function FacilityEditPage({
   ) => Promise<FacilityActionState>;
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <h1 className="text-2xl font-bold tracking-tight">施設を編集: {facility.name}</h1>
       <Card>
         <CardHeader>

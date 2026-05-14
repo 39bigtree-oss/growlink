@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function NewRefundPolicyPage() {
   await requireAdminSession("contracts:write");
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <h1 className="text-2xl font-bold">返金規定を新規作成</h1>
       <Card>
         <CardHeader>

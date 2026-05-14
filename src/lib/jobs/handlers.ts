@@ -39,3 +39,16 @@ registerHandler<{ faxSheetId: string; channel: string }>(
     await sendFaxSheet(payload.faxSheetId, payload.channel);
   },
 );
+
+// v1.6: 在留期限アラート (日次)
+registerHandler<Record<string, never>>(
+  "compliance",
+  "residence_expiry.scan",
+  async () => {
+    const { runResidenceExpiryAlertJob } = await import(
+      "@/lib/compliance/residence-expiry-job"
+    );
+    const result = await runResidenceExpiryAlertJob();
+    console.log("[compliance:residence_expiry] result", result);
+  },
+);

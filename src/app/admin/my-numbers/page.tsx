@@ -22,7 +22,7 @@ export default async function MyNumbersListPage() {
   const records = await listMyNumbers({ take: 200 });
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header>
         <h1 className="text-2xl font-bold">マイナンバー (特定個人情報)</h1>
         <p className="text-sm text-muted-foreground">

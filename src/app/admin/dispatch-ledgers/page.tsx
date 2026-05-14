@@ -24,7 +24,7 @@ export default async function DispatchLedgersListPage() {
   const items = await listDispatchLedgers({ take: 200 });
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header>
         <h1 className="text-2xl font-bold">派遣台帳</h1>
         <p className="text-sm text-muted-foreground">

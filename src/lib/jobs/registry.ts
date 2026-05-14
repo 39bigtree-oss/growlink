@@ -3,7 +3,7 @@ import "server-only";
 import { MemoryJobQueue } from "./memory";
 import type { JobHandler, JobPayload, JobQueue } from "./types";
 
-export type QueueName = "diagnosis" | "resume" | "interview" | "fax";
+export type QueueName = "diagnosis" | "resume" | "interview" | "fax" | "compliance";
 
 let registry: Partial<Record<QueueName, JobQueue>> = {};
 let initialized = false;

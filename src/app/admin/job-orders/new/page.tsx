@@ -16,7 +16,7 @@ export default async function NewJobOrderPage() {
   });
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <h1 className="text-2xl font-bold">求人案件を新規作成</h1>
       <Card>
         <CardHeader>

@@ -30,7 +30,7 @@ export default async function RefundPolicyDetailPage({
   const tiers = Array.isArray(p.tiers) ? (p.tiers as Tier[]) : [];
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-bold">{p.name}</h1>
         {p.description ? <p className="text-sm text-muted-foreground">{p.description}</p> : null}

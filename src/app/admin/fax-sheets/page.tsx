@@ -59,7 +59,7 @@ export default async function FaxSheetsListPage({
   const statusValues = ["DRAFT", "QUEUED", "SENT", "FAILED"];
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">FAX 送信票</h1>

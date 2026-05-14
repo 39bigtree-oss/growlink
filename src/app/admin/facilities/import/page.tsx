@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function FacilityImportPage() {
   await requireAdminSession("facilities:write");
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">施設マスタ CSV 一括インポート</h1>
         <p className="text-sm text-muted-foreground">

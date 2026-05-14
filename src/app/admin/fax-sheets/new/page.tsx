@@ -70,7 +70,7 @@ export default async function NewFaxSheetPage({
     : "未選択";
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-4 md:p-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">FAX 送信票 新規作成 / 一括生成</h1>
         <p className="text-sm text-muted-foreground">

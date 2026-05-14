@@ -4,6 +4,80 @@
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-05-14
+
+### Added — Phase 6 拡張 (退職予兆 / 在留期限 / マイナンバー OCR / 紹介ウィザード / AI bias / モバイル / RLS 準備)
+
+7 領域を 1 PR に同梱。**21 新規テスト / 計 324 passing**、新規ルート 2 件、新規 lib 5 本。
+
+#### 退職予兆スコアリング (Attrition Risk)
+
+- **`src/lib/analytics/attrition-risk.ts`** — ルールベース 5 軸モデル
+  - 在籍月数カーブ (1/3/6/12 ヶ月で重みが変わる退職率カーブ)
+  - 雇用形態 (派遣 > 紹介予定派遣 > パート > 常勤)
+  - 給与ギャップ (希望比 20% 以上低い → +20)
+  - シフトミスマッチ (一致軸数 ≤ 1 で +15)
+  - 業界経験不足 (1 年未満 +12)
+  - 退職実績ありなら確定スコア (1 ヶ月以内退職 = 100, CRITICAL)
+- Placement 詳細ページに **スコア + バンド + 寄与内訳 + 注釈**を表示
+- 8 新規テスト
+
+#### 在留期限アラートメール (Compliance Alert Job)
+
+- **`src/lib/compliance/residence-expiry-job.ts`** — 90 / 30 / 7 日前にスキャン → 担当営業へ通知
+- **`src/lib/email/templates/residence-expiry-alert.ts`** — PII 最小化 (氏名はイニシャル表記)
+- `compliance` queue を追加 + handler 登録
+- 重複送信防止 (`ResidenceStatus.alertSentAt` を cooldown ベースで判定)
+- 手動実行スクリプト: `pnpm tsx scripts/run-residence-expiry-job.ts`
+- 2 新規テスト
+
+#### マイナンバー登録フォーム + OCR mock
+
+- **`src/lib/compliance/my-number-ocr.ts`** — マイナンバーカード OCR の provider 抽象 + mock
+- `/admin/my-numbers/[applicantId]/new` — 手入力 / OCR 取込のタブ切替フォーム
+- mock: ファイル名に `test-card` が含まれていれば 12 桁を返す。本番は Google Document AI を v1.8 で
+- ADMIN のみ登録可、即座に AES-256-GCM 暗号化
+- 3 新規テスト
+
+#### 紹介成立ウィザード (3-step)
+
+- `/admin/placements/new` — 3 ステップフォーム
+  - Step 1: 求職者 + 施設 (営業対象 status のみ)
+  - Step 2: 求人案件 + 取引契約 (施設で絞り込み)
+  - Step 3: 入社日 + 月給 + 派遣台帳情報 (派遣形態のみ表示)
+- 作成時に **Invoice 自動発行** (紹介手数料形式の契約なら) + **DispatchLedger 自動生成** (派遣形態なら) を 1 トランザクションで
+- 紹介手数料は契約の feeRate × 年収で自動プレビュー
+
+#### AI Bias Evaluator
+
+- **`src/lib/ai/bias-eval.ts`** — AI 出力の差別表現チェック層
+- 検出カテゴリ: age / gender / nationality / disability / religion / marriage
+- severity: ok / warn / block
+- false positive 回避のため「属性語 + 帰属推論語」の連結を要求
+- v1.7 で Claude Haiku ベースのジャッジに切替予定 (環境変数 `BIAS_EVAL_PROVIDER`)
+- 9 新規テスト
+
+#### モバイル対応
+
+- サイドバーを **client component に変更**、モバイルでは下隅 FAB ボタンから **ドロワー**として開閉
+- 全管理ページの padding を `p-6` → `p-4 md:p-6` に統一
+- 自動でドロワーは画面遷移時に閉じる
+- 派遣台帳 list の操作列も「2 ボタン縦並びでも崩れない」ように検証済
+
+#### マルチテナント / RLS 準備
+
+- **`docs/multi-tenant-rls-plan.md`** — 発動条件 + 移行ランブック (4 ステップ)
+- **`src/lib/tenant/types.ts`** — `TenantContext` 型のスタブ + `DEFAULT_TENANT_ID`
+- 内部システム前提では RLS は導入しないことを明文化 (`internal-system-spec.md` 設計哲学 #2)
+- グループ会社 2 社目 / 外部 SaaS 提供 / 法令で物理分離必須 になった時点で発動
+
+### Non-Goals (v1.6 で意図的にやらないこと)
+
+- ❌ Claude Haiku による本物の bias eval (mock のみ。v1.7 で API キー入ったら切替)
+- ❌ 退職予兆の ML モデル (ルールベースのみ。v2.0 で LightGBM)
+- ❌ 実 RLS マイグレーション (発動条件を満たすまで保留)
+- ❌ マイナンバーカード OCR の本番 API 連携 (Google Document AI は v1.8)
+
 ## [1.5.0] — 2026-05-14
 
 ### Added — Phase 6 内部システムの UI 完成
