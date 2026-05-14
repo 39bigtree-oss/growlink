@@ -4,6 +4,95 @@
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-05-14
+
+### Added — Phase 6 内部システムの UI 完成
+
+v1.4 で組んだ DB スキーマ + ロジックの上に、運用可能な管理画面を一気に載せた。
+**19 新規ルート** (12 ページ + 7 server actions / API routes) を追加。
+
+#### サイドバー拡張
+
+- 6 つの新規ナビゲーション項目: 求人案件 / 取引契約 / 紹介成立 / 請求書 / マイナンバー / 監査ログ
+- ロール別に表示制御 (RBAC 拡張)
+
+#### RBAC 12 capability 追加
+
+- `job-orders:read|write` / `contracts:read|write` / `invoices:read|write`
+- `placements:read|write` / `dispatch-ledger:read`
+- `my-number:read|write` (ADMIN 専用) / `audit:read` (ADMIN 専用)
+- 4 ロール × 12 capability のマトリクスを `tests/unit/rbac-phase6.test.ts` で固定
+
+#### 求人案件 (JobOrder)
+
+- 一覧 `/admin/job-orders` — 緊急度別バッジ + 給与帯表示
+- 新規 `/admin/job-orders/new` — 全フィールド入力フォーム (職種・雇用形態・時給/月給帯・シフト・必須/推奨資格・経験年数・座標)
+- 詳細 `/admin/job-orders/[id]` — 編集フォーム + **マッチングパネル** (営業対象求職者の上位 10 名をスコア順)
+- 紹介成立タブで関連 Placement 一覧
+
+#### 取引契約 (Contract) + 返金規定 (RefundPolicy)
+
+- 契約 一覧 / 新規 / 詳細 — 手数料率・入金サイト・e-Sign プロバイダ表示
+- 契約 ステータス遷移ボタン (DRAFT → SENT → SIGNED / EXPIRED / CANCELLED)
+- 返金規定 一覧 / 新規 / 詳細 — 段階返金 (`30:100, 60:50, 90:20` 形式の入力)
+- 適用契約数のクロスリンク
+
+#### 紹介成立 (Placement)
+
+- 一覧 — 求職者 × 施設 × 案件 × 契約のステータステーブル
+- 詳細 — 月収・紹介手数料・手数料状況 + **返金規定シミュレーション** (本日 / 実退職日で何 % 返金になるか自動計算)
+- 関連 Invoice / DispatchLedger へクロスリンク
+
+#### 請求書 (Invoice)
+
+- 一覧 — 発行済 / 入金済 / 遅延 の 3 つの合計サマリ + 詳細テーブル
+- 詳細 — 小計 / 消費税 / 合計 + 入金済化ボタン
+- **CSV エクスポート** `/api/invoices/export` — freee / Money Forward へインポート可能な最小フォーマット
+
+#### 派遣台帳 (DispatchLedger)
+
+- 一覧 — 抵触日 90 日以内のものを **danger バッジ** でアラート
+- 詳細 — 台帳情報 + **PDF iframe プレビュー**
+- **PDF route** `/api/dispatch-ledgers/[id]/pdf` — react-pdf でラベル + 抵触日アラート付き A4 1 枚を動的生成
+- PDF 出力時は AuditEvent に記録 (誰がいつ何の台帳を出力したか証跡)
+
+#### マイナンバー (MyNumber)
+
+- 一覧 — 登録済求職者の用途 / 暗号化日時 / 保管期限
+- 求職者別ページ — **理由必須の閲覧申請モーダル**
+- 閲覧時にアクセスログを自動記録 + AuditEvent にも書き込み
+- 表示権限: ADMIN は平文閲覧可、CONSULTANT 以下はマスク表示のみ
+- アクセス履歴 (直近 50 件) を時系列で表示
+
+#### 監査ログ (AuditEvent) ビューア
+
+- 一覧 — 操作者 / action / entityType / hash (前 8 桁) を時系列表示
+- **整合性検証ボタン** — 全件 sha256 ハッシュチェーンを再計算して改ざん検知。改ざん位置 (brokenAt index) も返す
+- searchParams で action / entityType フィルタ
+
+#### Repository / Server Action 層
+
+- `src/lib/repositories/` に 8 新規ファイル: `job-order` / `contract` / `refund-policy` / `invoice` / `placement` / `dispatch-ledger` / `my-number` / `audit-event`
+- 全 mutation で `recordAuditEvent` (新 hash チェーン) と `recordAuditLog` (旧互換) の二重書き込み
+- マイナンバー閲覧は専用 `recordMyNumberAccess` + AuditEvent + AuditLog の 3 重記録
+
+#### PDF
+
+- `src/lib/pdf/dispatchLedgerPdf.tsx` — 派遣業法 第 31 条準拠の派遣元管理台帳テンプレ。NotoSansJP / 抵触日アラート色強調
+
+#### テスト (8 新規 / 計 303 passing)
+
+- `tests/unit/rbac-phase6.test.ts` (6) — Phase 6 capability マトリクス
+- `tests/ai/fax/dispatch-ledger-pdf.test.ts` (2) — PDF 生成 + magic header 検証
+
+### Non-Goals (v1.5 で意図的にやらないこと)
+
+- ❌ Placement の手動新規作成画面 (v1.6 で「紹介成立フロー」として独立)
+- ❌ MyNumber 登録フォーム (機微なので別途設計、v1.6)
+- ❌ 在留期限アラートメール (v1.6)
+- ❌ 退職予兆スコアリング (v1.6)
+- ❌ 本番 e-Sign / 会計 API 接続 (v1.7 で CloudSign / freee に切替)
+
 ## [1.4.0] — 2026-05-14
 
 ### Added — Phase 6: 完璧な内部システム化の基盤

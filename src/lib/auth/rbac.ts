@@ -24,7 +24,20 @@ export type AdminCapability =
   | "interviews:read"
   | "interviews:write"
   | "settings:read"
-  | "settings:write";
+  | "settings:write"
+  // v1.5: Phase 6 内部システム
+  | "job-orders:read"
+  | "job-orders:write"
+  | "contracts:read"
+  | "contracts:write"
+  | "invoices:read"
+  | "invoices:write"
+  | "placements:read"
+  | "placements:write"
+  | "dispatch-ledger:read"
+  | "my-number:read"
+  | "my-number:write"
+  | "audit:read";
 
 const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
   ADMIN: new Set([
@@ -40,6 +53,18 @@ const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
     "interviews:write",
     "settings:read",
     "settings:write",
+    "job-orders:read",
+    "job-orders:write",
+    "contracts:read",
+    "contracts:write",
+    "invoices:read",
+    "invoices:write",
+    "placements:read",
+    "placements:write",
+    "dispatch-ledger:read",
+    "my-number:read",
+    "my-number:write",
+    "audit:read",
   ]),
   CONSULTANT: new Set([
     "applicants:read",
@@ -50,6 +75,12 @@ const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
     "fax:create",
     "interviews:read",
     "interviews:write",
+    "job-orders:read",
+    "job-orders:write",
+    "contracts:read",
+    "placements:read",
+    "placements:write",
+    "dispatch-ledger:read",
   ]),
   // 営業: 申込一覧・詳細を見られて、FAX 作成・送信を担当。面接は閲覧のみ。
   SALES: new Set([
@@ -59,8 +90,18 @@ const ROLE_CAPABILITIES: Record<StaffRole, ReadonlySet<AdminCapability>> = {
     "fax:create",
     "fax:send",
     "interviews:read",
+    "job-orders:read",
+    "contracts:read",
+    "invoices:read",
+    "placements:read",
   ]),
-  VIEWER: new Set(["applicants:read", "facilities:read", "fax:read", "interviews:read"]),
+  VIEWER: new Set([
+    "applicants:read",
+    "facilities:read",
+    "fax:read",
+    "interviews:read",
+    "job-orders:read",
+  ]),
 };
 
 export function hasCapability(role: StaffRole | string | null | undefined, cap: AdminCapability): boolean {

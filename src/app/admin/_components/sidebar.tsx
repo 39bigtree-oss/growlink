@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BadgeCheck,
   Briefcase,
   Building2,
+  FileSignature,
+  IdCard,
   LayoutDashboard,
+  Receipt,
+  Scale,
   Send,
   Settings,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 
@@ -28,6 +34,13 @@ const NAV: NavItem[] = [
   { href: "/admin/sales", label: "営業フロー", icon: Briefcase, cap: "applicants:read" },
   { href: "/admin/fax-sheets", label: "FAX 送信票", icon: Send, cap: "fax:read" },
   { href: "/admin/facilities", label: "施設マスタ", icon: Building2, cap: "facilities:read" },
+  // v1.5: Phase 6 内部システム
+  { href: "/admin/job-orders", label: "求人案件", icon: BadgeCheck, cap: "job-orders:read" },
+  { href: "/admin/contracts", label: "取引契約", icon: FileSignature, cap: "contracts:read" },
+  { href: "/admin/placements", label: "紹介成立", icon: Scale, cap: "placements:read" },
+  { href: "/admin/invoices", label: "請求書", icon: Receipt, cap: "invoices:read" },
+  { href: "/admin/my-numbers", label: "マイナンバー", icon: IdCard, cap: "my-number:read" },
+  { href: "/admin/audit", label: "監査ログ", icon: ShieldCheck, cap: "audit:read" },
   { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },
 ];
 
