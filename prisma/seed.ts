@@ -6,8 +6,18 @@
  */
 import {
   ApplicantStatus,
+  ContractStatus,
+  ContractType,
+  EmploymentType,
+  ESignProvider,
   FacilityCategory,
   Gender,
+  InvoiceStatus,
+  JobOrderStatus,
+  JobOrderUrgency,
+  JobPosition,
+  PlacementFeeStatus,
+  Prisma,
   PrismaClient,
   Rank,
   StaffRole,
@@ -539,7 +549,12 @@ async function main() {
   // facilities (Phase 1 ベース) の id 配列を維持して、念のため未使用警告抑制
   void facilities;
 
-  console.log("Seed complete (v1.3: 全 status 別サンプル + 11 業態診断)");
+  // v1.4: Phase 6 — 内部システム基盤 (求人案件 / 契約 / 紹介成立 / 請求書 / 派遣台帳)
+  await seedPhase6Foundation();
+
+  console.log(
+    "Seed complete (v1.4: Phase 6 — 求人案件 / 契約 / 紹介成立 / 請求書 / 派遣台帳)",
+  );
 }
 
 main()
@@ -884,3 +899,235 @@ async function seedRichPipeline(
   }
 }
 
+
+// ============================================================================
+// v1.4: Phase 6 — 完璧内部システム化の基盤 seed
+// ----------------------------------------------------------------------------
+// 求人案件 (JobOrder) / 契約 (Contract + RefundPolicy) / 紹介成立 (Placement)
+// / 請求書 (Invoice) / 派遣台帳 (DispatchLedger) を、CONTRACTED な求職者向けに
+// 1 セット作成する。実運用フローのデモ用。
+//
+// 冪等性: 名前ベースの upsert + findFirst で再投入しても重複しない。
+// ============================================================================
+
+function calcAntiteishokuDateLocal(start: Date): Date {
+  const d = new Date(start);
+  d.setFullYear(d.getFullYear() + 3);
+  d.setDate(d.getDate() - 1);
+  return d;
+}
+
+async function seedPhase6Foundation() {
+  // 1) 返金規定: 標準 90 日段階返金
+  const refundPolicy = await prisma.refundPolicy.upsert({
+    where: { name: "標準 90 日段階返金" },
+    update: {},
+    create: {
+      name: "標準 90 日段階返金",
+      description:
+        "入社から N 日以内に退職した場合の段階返金規定。30日 100% / 60日 50% / 90日 20%。",
+      tiers: [
+        { withinDays: 30, refundRate: 1.0 },
+        { withinDays: 60, refundRate: 0.5 },
+        { withinDays: 90, refundRate: 0.2 },
+      ],
+    },
+  });
+
+  // 2) 求人案件: 全施設のうち 2 業態に対し 1 件ずつ
+  const facilities = await prisma.facility.findMany({
+    take: 4,
+    orderBy: { createdAt: "asc" },
+  });
+  if (facilities.length === 0) {
+    console.log("[Phase 6 seed] facilities が無いためスキップ");
+    return;
+  }
+
+  // 既存 JobOrder を冪等チェック (title + facilityId)
+  async function upsertJobOrder(data: Parameters<typeof prisma.jobOrder.create>[0]["data"]) {
+    const existing = await prisma.jobOrder.findFirst({
+      where: { title: data.title as string, facilityId: data.facilityId as string },
+    });
+    if (existing) return existing;
+    return prisma.jobOrder.create({ data });
+  }
+
+  const jobOrder1 = await upsertJobOrder({
+    facilityId: facilities[0].id,
+    title: "(架空) 訪問看護師 (常勤 / 日勤中心)",
+    position: JobPosition.NURSE,
+    employmentType: EmploymentType.DIRECT,
+    monthlyWageMin: 380000,
+    monthlyWageMax: 460000,
+    shiftPattern: { dayShift: true, nightShift: false, oncall: true, weeklyDays: 5 },
+    requiredQualifications: ["看護師"],
+    preferredQualifications: ["認知症ケア専門士"],
+    minExperienceYears: 3,
+    headcount: 2,
+    status: JobOrderStatus.OPEN,
+    urgency: JobOrderUrgency.URGENT,
+    startDate: new Date("2026-08-01"),
+    nearestStation: "新宿駅",
+    notes: "ご家族対応経験あればなお歓迎。",
+  });
+
+  const jobOrder2 = await upsertJobOrder({
+    facilityId: facilities[1]?.id ?? facilities[0].id,
+    title: "(架空) デイサービス 介護スタッフ (派遣)",
+    position: JobPosition.CARE_WORKER,
+    employmentType: EmploymentType.DISPATCH,
+    hourlyWageMin: 1500,
+    hourlyWageMax: 1800,
+    shiftPattern: { dayShift: true, nightShift: false, oncall: false, weeklyDays: 4 },
+    requiredQualifications: ["介護福祉士"],
+    preferredQualifications: [],
+    minExperienceYears: 1,
+    headcount: 1,
+    status: JobOrderStatus.OPEN,
+    urgency: JobOrderUrgency.NORMAL,
+    startDate: new Date("2026-08-01"),
+    endDate: new Date("2027-07-31"),
+    nearestStation: "京都駅",
+  });
+
+  // 3) Contract: 紹介と派遣で 1 件ずつ
+  async function upsertContract(facilityId: string, contractType: ContractType, feeRate: number) {
+    const existing = await prisma.contract.findFirst({
+      where: { facilityId, contractType },
+    });
+    if (existing) return existing;
+    return prisma.contract.create({
+      data: {
+        facilityId,
+        contractType,
+        feeRate: new Prisma.Decimal(feeRate),
+        refundPolicyId: refundPolicy.id,
+        paymentTermDays: 60,
+        startDate: new Date("2026-04-01"),
+        signedAt: new Date("2026-04-15"),
+        signedBy: "(架空) 施設長 山田",
+        eSignProvider: ESignProvider.MOCK,
+        status: ContractStatus.SIGNED,
+      },
+    });
+  }
+
+  const contractIntroduction = await upsertContract(
+    facilities[0].id,
+    ContractType.INTRODUCTION_FEE,
+    0.3, // 年収 30%
+  );
+  const contractDispatch = await upsertContract(
+    facilities[1]?.id ?? facilities[0].id,
+    ContractType.DISPATCH_AGREEMENT,
+    0.25, // 時給上乗せ 25%
+  );
+
+  // 4) Placement: CONTRACTED な求職者 1 名に対して紹介成立 1 件
+  const contracted = await prisma.applicant.findFirst({
+    where: { status: ApplicantStatus.CONTRACTED },
+  });
+  if (!contracted) {
+    console.log("[Phase 6 seed] CONTRACTED な applicant が無いため Placement をスキップ");
+    return;
+  }
+
+  const existingPlacement = await prisma.placement.findFirst({
+    where: { applicantId: contracted.id, jobOrderId: jobOrder1.id },
+  });
+  const monthlyWage = 420000;
+  const introductionFee = Math.round(monthlyWage * 12 * 0.3);
+  const placement =
+    existingPlacement ??
+    (await prisma.placement.create({
+      data: {
+        applicantId: contracted.id,
+        facilityId: facilities[0].id,
+        jobOrderId: jobOrder1.id,
+        contractId: contractIntroduction.id,
+        startDate: new Date("2026-05-01"),
+        monthlyWage: new Prisma.Decimal(monthlyWage),
+        introductionFee: new Prisma.Decimal(introductionFee),
+        feeStatus: PlacementFeeStatus.INVOICED,
+        refundDueDate: new Date("2026-07-30"),
+      },
+    }));
+
+  // 5) Invoice: Placement に紐付く請求書 1 件 (発行済)
+  const existingInvoice = await prisma.invoice.findFirst({
+    where: { placementId: placement.id },
+  });
+  if (!existingInvoice) {
+    const amount = introductionFee;
+    const tax = Math.round(amount * 0.1);
+    await prisma.invoice.create({
+      data: {
+        facilityId: facilities[0].id,
+        placementId: placement.id,
+        invoiceNumber: "INV-2026-05-0001",
+        issuedAt: new Date("2026-05-01"),
+        dueAt: new Date("2026-06-30"),
+        amount: new Prisma.Decimal(amount),
+        tax: new Prisma.Decimal(tax),
+        totalAmount: new Prisma.Decimal(amount + tax),
+        status: InvoiceStatus.ISSUED,
+      },
+    });
+  }
+
+  // 6) DispatchLedger: 派遣案件の Placement に紐付く台帳
+  //    今回の seed では INTRODUCTION_FEE 形式の placement しか作っていないので、
+  //    派遣サンプル用の placement2 を追加で作って台帳まで作る。
+  const dispatchApplicant = await prisma.applicant.findFirst({
+    where: { status: ApplicantStatus.IN_INTRODUCTION },
+  });
+  if (dispatchApplicant) {
+    const existingDispatchPlacement = await prisma.placement.findFirst({
+      where: { applicantId: dispatchApplicant.id, jobOrderId: jobOrder2.id },
+    });
+    const dispatchStart = new Date("2026-06-01");
+    const placement2 =
+      existingDispatchPlacement ??
+      (await prisma.placement.create({
+        data: {
+          applicantId: dispatchApplicant.id,
+          facilityId: facilities[1]?.id ?? facilities[0].id,
+          jobOrderId: jobOrder2.id,
+          contractId: contractDispatch.id,
+          startDate: dispatchStart,
+          monthlyWage: new Prisma.Decimal(280000),
+          introductionFee: new Prisma.Decimal(0),
+          feeStatus: PlacementFeeStatus.PENDING,
+        },
+      }));
+
+    const existingLedger = await prisma.dispatchLedger.findUnique({
+      where: { placementId: placement2.id },
+    });
+    if (!existingLedger) {
+      const dispatchEnd = new Date(dispatchStart);
+      dispatchEnd.setFullYear(dispatchEnd.getFullYear() + 1);
+      await prisma.dispatchLedger.create({
+        data: {
+          placementId: placement2.id,
+          applicantId: dispatchApplicant.id,
+          facilityId: facilities[1]?.id ?? facilities[0].id,
+          jobOrderId: jobOrder2.id,
+          antiteishokuDate: calcAntiteishokuDateLocal(dispatchStart),
+          dispatchPeriodStart: dispatchStart,
+          dispatchPeriodEnd: dispatchEnd,
+          dispatchManagerName: "(架空) 派遣元責任者 鈴木",
+          receivingManagerName: "(架空) 派遣先責任者 佐藤",
+          socialInsuranceEnrolled: true,
+          contractCount: 1,
+          notes: "3 年ルール抵触日に注意。次回更新は 2027-04 を目処。",
+        },
+      });
+    }
+  }
+
+  console.log(
+    "[Phase 6 seed] RefundPolicy / Contract×2 / JobOrder×2 / Placement / Invoice / DispatchLedger を投入完了",
+  );
+}

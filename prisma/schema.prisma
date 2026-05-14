@@ -61,6 +61,87 @@ enum FacilityCategory {
 }
 
 // =====================
+// Phase 6: 内部システム完成化用 enum
+// =====================
+
+enum JobPosition {
+  NURSE
+  CARE_WORKER
+  PT_OT_ST
+  SOCIAL_WORKER
+  CARE_MANAGER
+  OTHER
+}
+
+enum EmploymentType {
+  DISPATCH
+  DIRECT
+  TEMP_TO_PERM
+  PART_TIME
+}
+
+enum JobOrderStatus {
+  OPEN
+  HOLD
+  FILLED
+  CLOSED
+}
+
+enum JobOrderUrgency {
+  NORMAL
+  URGENT
+  CRITICAL
+}
+
+enum ContractType {
+  DISPATCH_AGREEMENT
+  INTRODUCTION_FEE
+  TEMP_TO_PERM
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  SIGNED
+  EXPIRED
+  CANCELLED
+}
+
+enum ESignProvider {
+  MOCK
+  CLOUDSIGN
+  GMO_SIGN
+}
+
+enum PlacementFeeStatus {
+  PENDING
+  INVOICED
+  PAID
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum MyNumberPurpose {
+  WITHHOLDING
+  SOCIAL_INSURANCE
+  EMPLOYMENT_INSURANCE
+}
+
+enum MyNumberAccessAction {
+  VIEW
+  UPDATE
+  DELETE
+  EXPORT
+}
+
+// =====================
 // Auth.js (NextAuth v5) 標準スキーマ
 // 参考: https://authjs.dev/getting-started/adapters/prisma
 // =====================
@@ -120,15 +201,18 @@ model VerificationToken {
 
 // 社内スタッフの業務属性。User と 1:1。
 model Staff {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email     String     @unique
-  name      String
-  role      StaffRole  @default(VIEWER)
-  auditLogs AuditLog[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                 String              @id @default(cuid())
+  userId             String              @unique
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email              String              @unique
+  name               String
+  role               StaffRole           @default(VIEWER)
+  auditLogs          AuditLog[]
+  // Phase 6: append-only ハッシュチェーン監査ログ + マイナンバーアクセスログ
+  auditEvents        AuditEvent[]
+  myNumberAccessLogs MyNumberAccessLog[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 // =====================
@@ -161,6 +245,10 @@ model Applicant {
   emailLogs         EmailLog[]
   interview         Interview?
   faxSheets         FaxSheet[]
+  // Phase 6: 紹介成立 / 派遣台帳 / マイナンバー
+  placements        Placement[]
+  dispatchLedgers   DispatchLedger[]
+  myNumberRecord    MyNumberRecord?
   deletedAt         DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -297,19 +385,25 @@ model JobLog {
 // =====================
 
 model Facility {
-  id          String           @id @default(cuid())
-  name        String
-  category    FacilityCategory
-  prefecture  String
-  city        String
-  address     String
-  fax         String?
-  email       String?
-  isFaxPublic Boolean          @default(false)
-  notes       String?
-  faxSheets   FaxSheet[]
-  reactions   FaxReaction[]
-  createdAt   DateTime         @default(now())
+  id              String           @id @default(cuid())
+  name            String
+  category        FacilityCategory
+  prefecture      String
+  city            String
+  address         String
+  fax             String?
+  email           String?
+  isFaxPublic     Boolean          @default(false)
+  notes           String?
+  faxSheets       FaxSheet[]
+  reactions       FaxReaction[]
+  // Phase 6: 求人案件 / 契約 / 請求書 / 紹介成立 / 派遣台帳 を Facility に紐付け
+  jobOrders       JobOrder[]
+  contracts       Contract[]
+  invoices        Invoice[]
+  placements      Placement[]
+  dispatchLedgers DispatchLedger[]
+  createdAt       DateTime         @default(now())
 
   @@index([category])
   @@index([prefecture])
@@ -453,9 +547,240 @@ model ResidenceStatus {
   expireAt    DateTime?
   // 自由記述 (条件付き / 在留期間更新中等)
   notes       String?
+  // Phase 6: 在留期限アラートの最終送信時刻 (重複送信防止)
+  alertSentAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([visaType])
   @@index([expireAt])
+}
+
+// =====================
+// Phase 6: 求人案件 / 契約 / 紹介成立 / 請求書 / 派遣台帳 / マイナンバー / 監査
+// 詳細は docs/internal-system-spec.md を参照
+// =====================
+
+// 求人案件。施設は法人実体、案件は個別募集。FAX 一括送信や加重マッチングの単位はこちら。
+model JobOrder {
+  id                      String           @id @default(cuid())
+  facilityId              String
+  facility                Facility         @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  title                   String
+  position                JobPosition
+  employmentType          EmploymentType
+  // 時給帯 (派遣・パート)。常勤は monthlyWage* を使う。
+  hourlyWageMin           Int?
+  hourlyWageMax           Int?
+  monthlyWageMin          Int?
+  monthlyWageMax          Int?
+  // { dayShift: bool, nightShift: bool, oncall: bool, weeklyDays: int }
+  shiftPattern            Json?
+  requiredQualifications  String[]         @default([])
+  preferredQualifications String[]         @default([])
+  minExperienceYears      Int              @default(0)
+  headcount               Int              @default(1)
+  status                  JobOrderStatus   @default(OPEN)
+  urgency                 JobOrderUrgency  @default(NORMAL)
+  startDate               DateTime?
+  endDate                 DateTime?
+  nearestStation          String?
+  lat                     Float?
+  lng                     Float?
+  notes                   String?
+  placements              Placement[]
+  dispatchLedgers         DispatchLedger[]
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  @@index([facilityId])
+  @@index([status])
+  @@index([position])
+  @@index([urgency])
+}
+
+// 返金規定 (早期退職時の段階返金)。Contract 経由で Placement に適用。
+model RefundPolicy {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  // [{ withinDays: 30, refundRate: 1.0 }, { withinDays: 60, refundRate: 0.5 }, ...]
+  tiers       Json
+  contracts   Contract[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// 取引契約 (施設との紹介・派遣契約)。
+model Contract {
+  id              String         @id @default(cuid())
+  facilityId      String
+  facility        Facility       @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  contractType    ContractType
+  // 紹介手数料率 (年収 % または時給上乗せ % など)
+  feeRate         Decimal        @db.Decimal(6, 4)
+  refundPolicyId  String?
+  refundPolicy    RefundPolicy?  @relation(fields: [refundPolicyId], references: [id])
+  paymentTermDays Int            @default(60)
+  startDate       DateTime
+  endDate         DateTime?
+  signedAt        DateTime?
+  signedBy        String?
+  eSignProvider   ESignProvider  @default(MOCK)
+  eSignDocId      String?
+  status          ContractStatus @default(DRAFT)
+  placements      Placement[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([facilityId])
+  @@index([status])
+  @@index([startDate])
+}
+
+// 紹介成立 (Applicant × Facility × JobOrder × Contract)。
+model Placement {
+  id              String             @id @default(cuid())
+  applicantId     String
+  applicant       Applicant          @relation(fields: [applicantId], references: [id])
+  facilityId      String
+  facility        Facility           @relation(fields: [facilityId], references: [id])
+  jobOrderId      String
+  jobOrder        JobOrder           @relation(fields: [jobOrderId], references: [id])
+  contractId      String
+  contract        Contract           @relation(fields: [contractId], references: [id])
+  startDate       DateTime
+  endDate         DateTime?
+  monthlyWage     Decimal            @db.Decimal(12, 2)
+  introductionFee Decimal            @db.Decimal(12, 2)
+  feeStatus       PlacementFeeStatus @default(PENDING)
+  refundDueDate   DateTime?
+  attritionAt     DateTime?
+  invoices        Invoice[]
+  dispatchLedger  DispatchLedger?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([applicantId])
+  @@index([facilityId])
+  @@index([feeStatus])
+  @@index([startDate])
+}
+
+// 請求書 (派遣費用 / 紹介手数料)。
+model Invoice {
+  id            String        @id @default(cuid())
+  facilityId    String
+  facility      Facility      @relation(fields: [facilityId], references: [id])
+  placementId   String?
+  placement     Placement?    @relation(fields: [placementId], references: [id])
+  invoiceNumber String        @unique
+  issuedAt      DateTime
+  dueAt         DateTime
+  paidAt        DateTime?
+  amount        Decimal       @db.Decimal(12, 2)
+  tax           Decimal       @db.Decimal(12, 2)
+  totalAmount   Decimal       @db.Decimal(12, 2)
+  status        InvoiceStatus @default(DRAFT)
+  pdfKey        String?
+  // freee / Money Forward のレコード ID
+  externalId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([facilityId])
+  @@index([status])
+  @@index([dueAt])
+}
+
+// 派遣台帳 (派遣業法対応)。Placement (EmploymentType=DISPATCH) ごとに 1 件。
+// 抵触日 = dispatchPeriodStart + 3 年 - 1 日。
+model DispatchLedger {
+  id                      String    @id @default(cuid())
+  placementId             String    @unique
+  placement               Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  // snapshot (Placement 削除/移動でも台帳は残せるよう)
+  applicantId             String
+  applicant               Applicant @relation(fields: [applicantId], references: [id])
+  facilityId              String
+  facility                Facility  @relation(fields: [facilityId], references: [id])
+  jobOrderId              String
+  jobOrder                JobOrder  @relation(fields: [jobOrderId], references: [id])
+  antiteishokuDate        DateTime
+  dispatchPeriodStart     DateTime
+  dispatchPeriodEnd       DateTime
+  dispatchManagerName     String
+  receivingManagerName    String
+  socialInsuranceEnrolled Boolean   @default(false)
+  contractCount           Int       @default(1)
+  notes                   String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([applicantId])
+  @@index([facilityId])
+  @@index([antiteishokuDate])
+}
+
+// マイナンバー (特定個人情報)。Applicant と 1:1。AES-256-GCM で encryptedNumber を保管。
+// 復号は src/lib/compliance/my-number.ts 経由。アクセス時は MyNumberAccessLog に必ず記録。
+model MyNumberRecord {
+  id              String              @id @default(cuid())
+  applicantId     String              @unique
+  applicant       Applicant           @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  // "iv:tag:ciphertext" の hex packed 形式
+  encryptedNumber String
+  encryptedAt     DateTime            @default(now())
+  purpose         MyNumberPurpose
+  retentionUntil  DateTime
+  deletedAt       DateTime?
+  accessLogs      MyNumberAccessLog[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([purpose])
+  @@index([retentionUntil])
+  @@index([deletedAt])
+}
+
+model MyNumberAccessLog {
+  id               String               @id @default(cuid())
+  myNumberRecordId String
+  myNumberRecord   MyNumberRecord       @relation(fields: [myNumberRecordId], references: [id], onDelete: Cascade)
+  staffId          String
+  staff            Staff                @relation(fields: [staffId], references: [id])
+  action           MyNumberAccessAction
+  reason           String
+  ipAddress        String?
+  accessedAt       DateTime             @default(now())
+
+  @@index([myNumberRecordId])
+  @@index([staffId])
+  @@index([accessedAt])
+}
+
+// append-only ハッシュチェーン監査ログ。hash = sha256(prevHash || canonical(this)).
+// 検証ジョブで連続区間の整合性を再計算 → 改ざん検知。
+model AuditEvent {
+  id           String   @id @default(cuid())
+  actorStaffId String?
+  actor        Staff?   @relation(fields: [actorStaffId], references: [id], onDelete: SetNull)
+  // Staff 削除後も追跡できるよう snapshot
+  actorEmail   String?
+  action       String
+  entityType   String
+  entityId     String?
+  before       Json?
+  after        Json?
+  ipAddress    String?
+  userAgent    String?
+  requestId    String?
+  prevHash     String
+  hash         String   @unique
+  createdAt    DateTime @default(now())
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([actorStaffId])
+  @@index([createdAt])
 }

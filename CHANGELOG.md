@@ -4,6 +4,72 @@
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-05-14
+
+### Added — Phase 6: 完璧な内部システム化の基盤
+
+- **仕様マスター文書**: `docs/internal-system-spec.md` を新設。v1.4〜v2.0 までのロードマップ、ドメインモデル、ロジック層、セキュリティ要件、テスト戦略を集約
+- **Prisma スキーマ拡張**: 9 新規モデル + 11 新規 enum を追加
+  - `JobOrder` — 求人案件 (Facility:1 → JobOrder:N)。職種・雇用形態・時給/月給帯・シフト・必須/推奨資格・最低経験年数・headcount・urgency・座標 (lat/lng) まで
+  - `RefundPolicy` — 返金規定 (段階返金 tiers JSON)
+  - `Contract` — 取引契約 (紹介手数料 / 派遣契約 / TtP)。e-Sign プロバイダ、入金サイトを含む
+  - `Placement` — 紹介成立 (Applicant × Facility × JobOrder × Contract)。手数料ステータス・退職日まで
+  - `Invoice` — 請求書 (請求書番号 unique / 税抜・税・税込)
+  - `DispatchLedger` — 派遣台帳 (派遣業法対応、抵触日 + 派遣元/先責任者 + 社保加入)
+  - `MyNumberRecord` — マイナンバー (特定個人情報)。AES-256-GCM 暗号化文字列で保管
+  - `MyNumberAccessLog` — マイナンバーアクセスログ (理由必須)
+  - `AuditEvent` — append-only ハッシュチェーン監査ログ (sha256(prevHash || canonical(this)))
+- **ResidenceStatus.alertSentAt** — 在留期限アラートの重複送信防止フィールド追加
+- **マイグレーション**: `prisma/migrations/20260514120000_phase_6_internal_foundation/` を同梱
+
+### Added — ロジック層 (src/lib/)
+
+- **`matching/score.ts`** — 加重マッチング (5 軸: distance 20% / wage 25% / shift 20% / qual 25% / exp 10%)。必須資格未保持なら total=0 のハードフィルタ
+- **`billing/calc.ts`** — 紹介手数料計算 (年収 × feeRate) + 段階返金規定の適用 (`applyRefund`) + 税計算
+- **`billing/invoice-number.ts`** — 請求書番号採番フォーマッタ (`INV-YYYY-MM-NNNN`) + parse
+- **`compliance/anti-teishoku.ts`** — 派遣業法 3 年ルール抵触日計算 + 残日数 + 接近判定
+- **`compliance/my-number.ts`** — マイナンバー AES-256-GCM 暗号化 / 復号 / 形式チェック / マスク (下 4 桁のみ表示)
+- **`audit/event.ts`** — `recordAuditEvent` (Serializable トランザクションで前 hash を読み hash を伸ばす) + `verifyChain` (改ざん検知)
+- **`integrations/e-sign/`** — 電子契約プロバイダ抽象 + mock (CloudSign / GMO サイン差し替え予定)
+- **`integrations/accounting/`** — 会計プロバイダ抽象 + mock (freee / Money Forward 差し替え予定)
+
+### Added — Zod スキーマ
+
+- `src/lib/schemas/job-order.ts` (求人案件フォーム + 応募者マッチングプロファイル + シフトパターン)
+- `src/lib/schemas/contract.ts` (取引契約フォーム + RefundTier + RefundPolicy)
+- `src/lib/schemas/placement.ts` (紹介成立フォーム)
+- `src/lib/schemas/invoice.ts` (請求書フォーム + 請求書番号正規表現)
+- `src/lib/schemas/dispatch-ledger.ts` (派遣台帳フォーム)
+- `src/lib/schemas/my-number.ts` (マイナンバー入力 + アクセス理由スキーマ)
+
+### Added — テスト (新規 37 ケース)
+
+- `tests/unit/matching-score.test.ts` (6 ケース) — 加重スコア決定論 + ハードフィルタ + 距離/月給/経験各軸
+- `tests/unit/billing-calc.test.ts` (12 ケース) — 紹介手数料 / 段階返金 / 税 / 請求書番号 round trip
+- `tests/unit/anti-teishoku.test.ts` (6 ケース) — 3 年抵触日計算 (うるう年含む) + 接近判定
+- `tests/unit/my-number-crypto.test.ts` (8 ケース) — AES-GCM round trip + 鍵差し替えで復号失敗 + マスク
+- `tests/unit/audit-chain.test.ts` (5 ケース) — Genesis チェーン + 改ざん検知 (after 書換 / 中間削除)
+
+合計 **295 / 295 tests passing** (258 既存 + 37 新規)。
+
+### Added — seed 拡張
+
+- `seedPhase6Foundation()` を `main()` 末尾に追加
+  - 標準 90 日段階返金規定 (30/60/90 日)
+  - 紹介手数料 30% 契約 × 1 + 派遣手数料 25% 契約 × 1
+  - 求人案件 (訪問看護 常勤 / デイサービス 派遣) × 2
+  - CONTRACTED 求職者 1 名 → Placement + Invoice (INV-2026-05-0001, 発行済)
+  - IN_INTRODUCTION 求職者 1 名 → 派遣 Placement + DispatchLedger (抵触日付き)
+- 全て冪等 (再投入しても重複しない)
+
+### Non-Goals (v1.4 で意図的にやらないこと)
+
+- ❌ マルチテナント (`tenantId` 全付け) — 内部システムだから不要
+- ❌ UI 実装 (v1.5 で別 PR に分割)
+- ❌ 本番 e-Sign / 会計 API 接続 (mock のみ)
+- ❌ MFA / SSO (v1.8)
+- ❌ 在留期限の自動メール送信 (v1.6)
+
 ## [1.3.0] — 2026-05-14
 
 ### Added — 運用イメージのリッチプレビュー
