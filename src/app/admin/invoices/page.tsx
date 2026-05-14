@@ -27,11 +27,20 @@ const STATUS_LABEL: Record<string, string> = {
   VOID: "取消",
 };
 
-export default async function InvoicesListPage() {
+export default async function InvoicesListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   await requireAdminSession("invoices:read");
+  const sp = await searchParams;
+  const statusFilter =
+    sp.status === "OVERDUE" || sp.status === "ISSUED" || sp.status === "PAID"
+      ? sp.status
+      : undefined;
   const [items, total, totals] = await Promise.all([
-    listInvoices({ take: 200 }),
-    countInvoices(),
+    listInvoices({ take: 200, status: statusFilter }),
+    countInvoices({ status: statusFilter }),
     sumInvoiceTotals(),
   ]);
 

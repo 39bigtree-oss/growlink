@@ -80,12 +80,14 @@ function ToastViewport({ items, onDismiss }: { items: ToastItem[]; onDismiss: (i
     <div
       role="region"
       aria-label="通知"
+      aria-live="polite"
+      aria-atomic="false"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 p-4 sm:items-end"
     >
       {items.map((t) => (
         <div
           key={t.id}
-          role="status"
+          role={t.variant === "destructive" ? "alert" : "status"}
           className={cn(
             "pointer-events-auto w-full max-w-sm rounded-md border bg-background p-3 text-sm shadow-md",
             "data-[variant=success]:border-emerald-300 data-[variant=success]:bg-emerald-50 data-[variant=success]:text-emerald-900",

@@ -163,6 +163,21 @@ enum NurtureStepKind {
   WAIT
 }
 
+// v1.9: AI 出力レビューワークフロー (Responsible AI)
+enum AiReviewKind {
+  DIAGNOSIS
+  FAX_COVER
+  EMAIL_DRAFT
+  INTERVIEW_SUMMARY
+}
+
+enum AiReviewStatus {
+  PENDING
+  APPROVED
+  EDITED
+  REJECTED
+}
+
 // =====================
 // Auth.js (NextAuth v5) 標準スキーマ
 // 参考: https://authjs.dev/getting-started/adapters/prisma
@@ -233,6 +248,8 @@ model Staff {
   // Phase 6: append-only ハッシュチェーン監査ログ + マイナンバーアクセスログ
   auditEvents        AuditEvent[]
   myNumberAccessLogs MyNumberAccessLog[]
+  // v1.9: AI 出力レビューの担当
+  aiReviews          AiReview[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -273,6 +290,8 @@ model Applicant {
   myNumberRecord    MyNumberRecord?
   // v1.8: ナーチャシナリオ
   nurtureSequences  NurtureSequence[]
+  // v1.9: AI 出力レビュー
+  aiReviews         AiReview[]
   deletedAt         DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -893,4 +912,41 @@ model AuditCheckpoint {
   createdAt      DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// =====================
+// v1.9: Responsible AI レビューワークフロー
+// =====================
+
+// AI が生成した出力に対する「人間の承認/編集/却下」を必ず通すための監査面。
+// `before` は AI 生の出力、`after` は人間が直した最終公開版。
+// 公開系 (FAX/メール/PDF 等) は status=APPROVED か EDITED でないと送信できない運用を強制する。
+model AiReview {
+  id              String         @id @default(cuid())
+  kind            AiReviewKind
+  applicantId     String?
+  applicant       Applicant?     @relation(fields: [applicantId], references: [id], onDelete: SetNull)
+  // 関連エンティティ (FaxSheet / EmailLog / Interview など)
+  refEntityType   String?
+  refEntityId     String?
+  // AI 出力 (Markdown / Plain text / JSON 文字列のいずれか)
+  aiOutput        String         @db.Text
+  // 人間が編集した最終版 (EDITED 時のみ非 null)
+  finalOutput     String?        @db.Text
+  // AI provider が返した confidence (0-1)
+  confidence      Float?
+  // 公開前の bias eval 結果 (overall + findings JSON snapshot)
+  biasEval        Json?
+  status          AiReviewStatus @default(PENDING)
+  reviewerStaffId String?
+  reviewerStaff   Staff?         @relation(fields: [reviewerStaffId], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  reviewNote      String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([kind])
+  @@index([applicantId])
+  @@index([refEntityType, refEntityId])
 }
