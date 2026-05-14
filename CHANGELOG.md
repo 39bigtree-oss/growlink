@@ -4,6 +4,56 @@
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-05-14
+
+### Added — フィーチャ状態の可視化 (スタッフが使える / 使えないが一目で分かる)
+
+スタッフが画面に入った瞬間に「これは本物? mock? 制限あり?」が分かる状態を作る。
+**16 新規テスト / 計 340 passing**、新規ルート 1 件、新規 lib 1 本、新規コンポーネント 2 本。
+
+#### フィーチャ状態レジストリ (`src/lib/system-status/features.ts`)
+
+- **シングル・ソース・オブ・トゥルース** で全 36 機能の状態を一元管理
+- 5 状態: `READY` (本番運用可) / `MOCK` / `LIMITED` / `PLANNED` / `ROADMAP`
+- 各機能のメタ情報: 名前 / カテゴリ / 説明 / 制限内容 / プロバイダ / 本番コスト目安 / 接続予定バージョン
+- 環境変数を見て状態を動的判定する `runtimeState()` を実装
+  - `AI_PROVIDER=gemini` → AI 機能群が READY に切り替わる
+  - `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` 設定済 → email.send が READY
+  - `BIAS_EVAL_PROVIDER=claude_haiku` → ai.bias_eval が READY
+
+#### UI コンポーネント
+
+- **`<FeatureStatusBadge>`** — 機能の状態を 1 行のバッジで表示 (mock / limited / planned)
+- **`<FeatureStatusBanner>`** — 機能の制限を「アイコン + タイトル + 説明 + 制限リスト + 本番コスト + 予定バージョン」のリッチカードで表示
+- **`<OperatingModePanel>`** — ダッシュボード上部の "運用モード" カード (READY / MOCK / LIMITED / PLANNED / ROADMAP の件数 + mock 中の代表機能)
+
+#### `/admin/system-status` 一覧ページ
+
+- 全 36 機能を **11 カテゴリ別**にテーブル表示
+- 状態別件数の 5 つのサマリカード (色分け済)
+- 制限内容 / プロバイダ / 本番コスト / 接続予定バージョンを各行に表示
+- サイドバーに「機能状態」ナビ項目を追加
+
+#### バナー設置箇所
+
+- **ダッシュボード** — OperatingModePanel で全体サマリ
+- **AI 適職診断タブ** (`/admin/applicants/[id]` → 診断タブ) — `ai.diagnosis` バナー
+- **FAX 送信票** (`/admin/fax-sheets`) — `fax.send` バナー
+- **取引契約** (`/admin/contracts`) — `integration.e_sign` バナー (e-Sign mock)
+- **請求書** (`/admin/invoices`) — `integration.accounting` バナー (freee/MF mock)
+- **マイナンバー登録** (`/admin/my-numbers/[id]/new`) — `ocr.my_number_card` バナー
+- **紹介成立ウィザード** (`/admin/placements/new`) — invoice / e_sign / accounting の 3 バナー (作成時に内部で何が走るか明示)
+
+#### テスト (新規 16)
+
+- `tests/unit/feature-status.test.ts` — レジストリ整合性 (key 一意性, 必須フィールド), runtimeState 動的判定 (AI/Email/Bias 各種), Phase 6 主要機能の登録カバレッジ
+
+### Non-Goals (v1.7 で意図的にやらないこと)
+
+- ❌ 各機能の "切替トグル" を UI から実行 (環境変数経由のみ、安全側)
+- ❌ Slack/PagerDuty への状態変化通知 (v1.8)
+- ❌ 月利用量メーター (Resend 残枠など、v1.8 で各 provider の usage API 連携時)
+
 ## [1.6.0] — 2026-05-14
 
 ### Added — Phase 6 拡張 (退職予兆 / 在留期限 / マイナンバー OCR / 紹介ウィザード / AI bias / モバイル / RLS 準備)

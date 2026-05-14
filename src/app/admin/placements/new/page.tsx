@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { Card, CardContent } from "@/components/ui/card";
 import { requireAdminSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
@@ -54,6 +55,12 @@ export default async function NewPlacementPage() {
           <Link href="/admin/placements" className="hover:underline">紹介成立</Link> / 新規
           (Wizard 形式)
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <FeatureStatusBanner featureKey="billing.invoice" />
+        <FeatureStatusBanner featureKey="integration.e_sign" />
+        <FeatureStatusBanner featureKey="integration.accounting" />
       </div>
 
       <Card>

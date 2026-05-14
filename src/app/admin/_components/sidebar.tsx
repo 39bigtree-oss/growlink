@@ -9,6 +9,7 @@ import {
   Building2,
   FileSignature,
   IdCard,
+  Info,
   LayoutDashboard,
   Menu,
   Receipt,
@@ -45,6 +46,7 @@ const NAV: NavItem[] = [
   { href: "/admin/invoices", label: "請求書", icon: Receipt, cap: "invoices:read" },
   { href: "/admin/my-numbers", label: "マイナンバー", icon: IdCard, cap: "my-number:read" },
   { href: "/admin/audit", label: "監査ログ", icon: ShieldCheck, cap: "audit:read" },
+  { href: "/admin/system-status", label: "機能状態", icon: Info },
   { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },
 ];
 

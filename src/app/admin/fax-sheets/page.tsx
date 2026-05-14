@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { requireAdminSession } from "@/lib/auth/session";
 import { hasCapability } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
@@ -71,6 +72,8 @@ export default async function FaxSheetsListPage({
           </Button>
         )}
       </header>
+
+      <FeatureStatusBanner featureKey="fax.send" />
 
       <div className="flex flex-wrap gap-2">
         <Link
