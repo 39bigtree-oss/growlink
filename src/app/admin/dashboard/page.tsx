@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { OperatingModePanel } from "@/components/operating-mode-panel";
 import { requireAdminSession } from "@/lib/auth/session";
 import { loadDashboardKpi } from "@/lib/dashboard/kpi";
 import {
@@ -44,6 +45,8 @@ export default async function DashboardPage() {
           全期間の主要 KPI と、過去 30 日のトレンド、施設別の反応率を表示します。
         </p>
       </div>
+
+      <OperatingModePanel />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard title="今日の申込数" value={`${kpi.todayApplicants}`} description="今日 00:00 以降に受け付けた件数" />

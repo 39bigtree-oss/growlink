@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { requireAdminSession } from "@/lib/auth/session";
 import { countInvoices, listInvoices, sumInvoiceTotals } from "@/lib/repositories/invoice";
 
@@ -47,6 +48,8 @@ export default async function InvoicesListPage() {
           <a href="/api/invoices/export" target="_blank">CSV エクスポート</a>
         </Button>
       </header>
+
+      <FeatureStatusBanner featureKey="integration.accounting" />
 
       <div className="grid gap-3 md:grid-cols-3">
         <Card>

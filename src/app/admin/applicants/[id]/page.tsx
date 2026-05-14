@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { RunDiagnosisButton } from "@/app/_shared/run-diagnosis-button";
 import { requireAdminSession } from "@/lib/auth/session";
 import { hasCapability } from "@/lib/auth/rbac";
@@ -243,7 +244,8 @@ export default async function ApplicantDetailPage({
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
+                <FeatureStatusBanner featureKey="ai.diagnosis" />
                 {hasDiagnosis ? (
                   <div className="space-y-5">
                     {/* v1.3: 11 業態の視覚的スコアバー (実運用イメージで一目で見られる) */}

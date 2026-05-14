@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdminSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
@@ -34,6 +35,8 @@ export default async function NewMyNumberPage({
           <Link href={`/admin/my-numbers/${applicantId}`} className="hover:underline">求職者別ページ</Link>
         </p>
       </div>
+
+      <FeatureStatusBanner featureKey="ocr.my_number_card" />
 
       <Card>
         <CardHeader>

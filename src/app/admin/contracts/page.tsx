@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FeatureStatusBanner } from "@/components/feature-status";
 import { hasCapability } from "@/lib/auth/rbac";
 import { requireAdminSession } from "@/lib/auth/session";
 import { countContracts, listContracts } from "@/lib/repositories/contract";
@@ -58,6 +59,8 @@ export default async function ContractsListPage() {
           ) : null}
         </div>
       </header>
+
+      <FeatureStatusBanner featureKey="integration.e_sign" />
 
       <Card>
         <CardHeader>
