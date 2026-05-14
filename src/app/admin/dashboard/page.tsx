@@ -25,6 +25,8 @@ import {
 
 import { DailyMetricsChart } from "./_daily-chart";
 import { StatusBreakdownChart } from "./_status-chart";
+import { FunnelCard } from "./_funnel-card";
+import { ArAgingCard } from "./_aging-card";
 
 export const metadata = { title: "ダッシュボード | グロウリンク" };
 export const dynamic = "force-dynamic";
@@ -77,6 +79,11 @@ export default async function DashboardPage() {
           }
           description={`入社後 12 ヶ月以上経過した ${survival.m12.evaluable} 件中の在籍率`}
         />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <FunnelCard />
+        <ArAgingCard />
       </div>
 
       <Card>

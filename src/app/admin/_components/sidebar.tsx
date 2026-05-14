@@ -26,33 +26,42 @@ import { cn } from "@/lib/utils";
 import { TsumugiLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { hasCapability, type AdminCapability } from "@/lib/auth/rbac";
+import { adminT, type AdminLocale } from "@/lib/i18n/admin";
 
 type NavItem = {
   href: string;
-  label: string;
+  /** i18n キー (nav.xxx)。表示時は adminT で解決 */
+  i18nKey: string;
   icon: typeof LayoutDashboard;
   cap?: AdminCapability;
 };
 
 const NAV: NavItem[] = [
-  { href: "/admin/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
-  { href: "/admin/applicants", label: "申込一覧", icon: Users, cap: "applicants:read" },
-  { href: "/admin/sales", label: "営業フロー", icon: Briefcase, cap: "applicants:read" },
-  { href: "/admin/fax-sheets", label: "FAX 送信票", icon: Send, cap: "fax:read" },
-  { href: "/admin/facilities", label: "施設マスタ", icon: Building2, cap: "facilities:read" },
+  { href: "/admin/dashboard", i18nKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/admin/applicants", i18nKey: "nav.applicants", icon: Users, cap: "applicants:read" },
+  { href: "/admin/sales", i18nKey: "nav.sales", icon: Briefcase, cap: "applicants:read" },
+  { href: "/admin/fax-sheets", i18nKey: "nav.fax_sheets", icon: Send, cap: "fax:read" },
+  { href: "/admin/facilities", i18nKey: "nav.facilities", icon: Building2, cap: "facilities:read" },
   // v1.5: Phase 6 内部システム
-  { href: "/admin/job-orders", label: "求人案件", icon: BadgeCheck, cap: "job-orders:read" },
-  { href: "/admin/contracts", label: "取引契約", icon: FileSignature, cap: "contracts:read" },
-  { href: "/admin/placements", label: "紹介成立", icon: Scale, cap: "placements:read" },
-  { href: "/admin/invoices", label: "請求書", icon: Receipt, cap: "invoices:read" },
-  { href: "/admin/my-numbers", label: "マイナンバー", icon: IdCard, cap: "my-number:read" },
-  { href: "/admin/nurture", label: "ナーチャ自動化", icon: Sparkles, cap: "applicants:read" },
-  { href: "/admin/audit", label: "監査ログ", icon: ShieldCheck, cap: "audit:read" },
-  { href: "/admin/system-status", label: "機能状態", icon: Info },
-  { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },
+  { href: "/admin/job-orders", i18nKey: "nav.job_orders", icon: BadgeCheck, cap: "job-orders:read" },
+  { href: "/admin/contracts", i18nKey: "nav.contracts", icon: FileSignature, cap: "contracts:read" },
+  { href: "/admin/placements", i18nKey: "nav.placements", icon: Scale, cap: "placements:read" },
+  { href: "/admin/invoices", i18nKey: "nav.invoices", icon: Receipt, cap: "invoices:read" },
+  { href: "/admin/my-numbers", i18nKey: "nav.my_numbers", icon: IdCard, cap: "my-number:read" },
+  { href: "/admin/nurture", i18nKey: "nav.nurture", icon: Sparkles, cap: "applicants:read" },
+  { href: "/admin/ai-reviews", i18nKey: "nav.ai_reviews", icon: Sparkles },
+  { href: "/admin/audit", i18nKey: "nav.audit", icon: ShieldCheck, cap: "audit:read" },
+  { href: "/admin/system-status", i18nKey: "nav.system_status", icon: Info },
+  { href: "/admin/settings", i18nKey: "nav.settings", icon: Settings, cap: "settings:read" },
 ];
 
-export function AdminSidebar({ role }: { role: string }) {
+export function AdminSidebar({
+  role,
+  locale = "ja",
+}: {
+  role: string;
+  locale?: AdminLocale;
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = NAV.filter((n) => (n.cap ? hasCapability(role, n.cap) : true));
@@ -84,14 +93,14 @@ export function AdminSidebar({ role }: { role: string }) {
             className="absolute left-0 top-0 h-full w-64 bg-background shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <NavInner role={role} items={items} pathname={pathname} onClose={() => setMobileOpen(false)} />
+            <NavInner role={role} items={items} pathname={pathname} locale={locale} onClose={() => setMobileOpen(false)} />
           </div>
         </div>
       ) : null}
 
       {/* デスクトップ: 常時表示 */}
       <aside className="hidden w-56 shrink-0 border-r bg-muted/30 md:flex md:flex-col">
-        <NavInner role={role} items={items} pathname={pathname} />
+        <NavInner role={role} items={items} pathname={pathname} locale={locale} />
       </aside>
     </>
   );
@@ -101,11 +110,13 @@ function NavInner({
   role,
   items,
   pathname,
+  locale,
   onClose,
 }: {
   role: string;
   items: NavItem[];
   pathname: string;
+  locale: AdminLocale;
   onClose?: () => void;
 }) {
   return (
@@ -137,7 +148,7 @@ function NavInner({
               )}
             >
               <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
+              <span>{adminT(item.i18nKey, locale)}</span>
             </Link>
           );
         })}

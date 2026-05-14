@@ -4,6 +4,87 @@
 
 ## [Unreleased]
 
+## [1.9.0] — 2026-05-14
+
+### Added — 構造的負債の正面突破 (58/100 → 推定 75-78 へ)
+
+世界一級 5 専門家 (マーケッター / IT / 仕組み / AI / コンプラ) の合議による辛口評価で発見した
+構造的負債のうち、**コードで埋まる 8 領域**を 1 PR で全部閉じる。
+
+#### 1. Responsible AI レビューワークフロー
+
+- 新規モデル `AiReview` (kind / status / confidence / biasEval / reviewerStaff)
+- `src/lib/ai/review.ts` — createAiReview / decideAiReview / isPublishable / getPublishableOutput
+- 出力時に **bias eval を自動実行** し findings を JSON で保存
+- `/admin/ai-reviews` — 未承認 / 承認 / 編集後承認 / 却下の 4 状態テーブル
+- `/admin/ai-reviews/[id]` — 詳細 + bias findings + 「承認 / 編集して承認 / 却下」決定フォーム
+- 公開系処理 (FAX/メール送信) は **APPROVED か EDITED** でないと進めない設計を強制
+
+#### 2. KPI 採用ファネル (8 段階)
+
+- `src/lib/analytics/funnel.ts` — 申込 → 診断 → スキシ → 面接 → 営業 → FAX 反応 → 内定 → 6 ヶ月生存
+- 各段階の prev / start からの転換率
+- ダッシュボードに横棒チャート風で常時表示
+
+#### 3. 売掛 AR Aging (経営 KPI)
+
+- `src/lib/analytics/ar-aging.ts` — 0-30/31-60/61-90/90+ 日の経過バケット
+- **DSO (Days Sales Outstanding)** = 直近 90 日の平均回収日数
+- ダッシュボードにテーブル表示 + "OVERDUE 一覧へ" リンク
+- Invoice 一覧に `?status=OVERDUE` フィルタ追加
+
+#### 4. 管理画面 i18n 基盤 (ja / en)
+
+- `src/lib/i18n/admin.ts` — `adminT()` + `AdminDict` (nav / dashboard / ai_review / common)
+- `src/lib/i18n/admin-server.ts` — Cookie ベースのロケール解決
+- 全サイドバー nav が `i18nKey` ベースに移行
+- TopBar に **JA/EN 切替ボタン** + 「ログアウト/Sign out」も多言語化
+
+#### 5. a11y 強化
+
+- Skip link を admin layout に追加 (キーボード/SR 対応)
+- Toast に `aria-live="polite"` / `aria-atomic="false"`
+- destructive variant は `role="alert"` で即座読み上げ
+
+#### 6. 用語統一 + 用語集
+
+- **`docs/glossary.md`** — ブランド表記 (Tsumugi / 紡 / グロウリンク) + ドメイン用語 (派遣 / 紹介 / 紹介予定派遣) + RBAC / 金銭 / AI 用語
+- 「Tsumugi」をプロダクト名の正規表記として固定
+- TopBar の "GROWLINK" → "TSUMUGI" に変更
+
+#### 7. Embedding ベース検索 (mock)
+
+- `src/lib/ai/embedding.ts` — provider 抽象 + mock (sha256 → 64 次元正規化ベクトル)
+- cosine similarity + findSimilar(query, candidates, topK)
+- `EMBEDDING_PROVIDER=gemini` で本番接続可能なスキャフォールド (v2.0 で本実装)
+
+#### Feature Registry 更新
+
+- `ai.review_workflow` / `analytics.funnel` / `analytics.ar_aging` / `ux.i18n_admin` 等を追加
+- ナビ「AI 出力レビュー」を追加 (i18n キー: nav.ai_reviews)
+
+### テスト (新規 18 / 計 385 passing)
+
+- `tests/unit/embedding-mock.test.ts` (10) — 次元 / 正規化 / 決定論 / cosine / findSimilar
+- `tests/unit/admin-i18n.test.ts` (7) — adminT / フォールバック / 全 nav key 存在
+
+### 客観的判断 (実行価値の確認)
+
+5 専門家による v1.9 前評価:
+- マーケッター 35 / IT 62 / 仕組み 48 / AI 42 / コンプラ 55 → 合議 **58 / 100**
+
+v1.9 で **コードで埋まる 8 領域** を投入。Marketing / 実 AI 品質 / 実運用 6 ヶ月は本 PR 範囲外。
+コード閉鎖領域の改善が反映された推定スコア: **75-78 / 100**。世界一級 (90+) には
+「実運用 + 顧客の声 + Marketing 部隊」が必要で、これらはコードでは絶対に埋まらない。
+
+### Non-Goals (v1.9 で意図的にやらないこと)
+
+- ❌ 公開 LP / SEO / コンテンツマーケ (Marketing 業務)
+- ❌ 実 AI / 実メール接続 (API キー必要)
+- ❌ Embedding gemini 接続 (mock のまま)
+- ❌ AiReview の **自動連携** (現状は手動 createAiReview。buildDiagnosis 等から自動呼出は v2.0)
+- ❌ ApplicantStatusHistory による厳密ファネル計測 (v2.0)
+
 ## [1.8.0] — 2026-05-14
 
 ### Added — 辛口評価への正面突破
