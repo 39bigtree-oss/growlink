@@ -451,10 +451,95 @@ async function main() {
   await seedFaxSheet(applicant1.id, facilities[0].id);
   await seedAuditLog(staff.id);
 
-  await seedExtraApplicants();
   await seedExtraFacilities();
+  const extras = await seedExtraApplicants();
 
-  console.log("Seed complete");
+  // v1.3: 全架空求職者に「ステータスに応じた完成データ」を流す。
+  // これにより /admin/applicants/[id] を開けば、各 status の業務イメージが
+  // すぐ見られる。AI 診断は 11 業態フル、SkillSheet/Interview/FaxSheet も含む。
+  const allFacilities = await prisma.facility.findMany({
+    select: { id: true, isFaxPublic: true },
+  });
+  const faxablePool = allFacilities.filter((f) => f.isFaxPublic).map((f) => f.id);
+
+  // 既存 applicant1: DIAGNOSED — フル 11 業態の診断を補強
+  await seedFullDiagnoses(applicant1.id, {
+    topCategory: FacilityCategory.HOMEVISIT_NURSE,
+    qualificationLabel: "看護師",
+  });
+
+  // 既存 applicant2: RECEIVED → DIAGNOSED に進めて 11 業態診断も入れる
+  await prisma.applicant.update({
+    where: { id: applicant2.id },
+    data: { status: ApplicantStatus.DIAGNOSED },
+  });
+  await seedFullDiagnoses(applicant2.id, {
+    topCategory: FacilityCategory.DAYCARE_ELDERLY,
+    qualificationLabel: "介護福祉士",
+  });
+
+  // 追加サンプル: status ごとに想定される「実運用データの完成度」を持たせる
+  type ExtraPlan = {
+    email: string;
+    topCategory: FacilityCategory;
+    qualification: string;
+    status: ApplicantStatus;
+  };
+  const plans: ExtraPlan[] = [
+    {
+      email: "anon-nurse-003@example.test",
+      topCategory: FacilityCategory.HOMEVISIT_NURSE,
+      qualification: "看護師",
+      status: ApplicantStatus.SKILL_SHEET_INPROGRESS,
+    },
+    {
+      email: "anon-careworker-004@example.test",
+      topCategory: FacilityCategory.DAYCARE_ELDERLY,
+      qualification: "介護福祉士",
+      status: ApplicantStatus.SKILL_SHEET_DONE,
+    },
+    {
+      email: "anon-nurse-vi-005@example.test",
+      topCategory: FacilityCategory.HOMEVISIT_CARE,
+      qualification: "介護福祉士 (特定技能)",
+      status: ApplicantStatus.INTERVIEW_DONE,
+    },
+    {
+      email: "anon-nurse-006@example.test",
+      topCategory: FacilityCategory.HOSPITAL_GENERAL,
+      qualification: "看護師 / 保健師",
+      status: ApplicantStatus.SALES_READY,
+    },
+    {
+      email: "anon-nurse-007@example.test",
+      topCategory: FacilityCategory.CLINIC,
+      qualification: "看護師",
+      status: ApplicantStatus.IN_INTRODUCTION,
+    },
+    {
+      email: "anon-careworker-008@example.test",
+      topCategory: FacilityCategory.HOMEVISIT_NURSE_PSYCHIATRY,
+      qualification: "精神保健福祉士",
+      status: ApplicantStatus.CONTRACTED,
+    },
+  ];
+
+  for (const plan of plans) {
+    const ap = extras.find((e) => e.email === plan.email);
+    if (!ap) continue;
+    await seedRichPipeline(
+      ap.id,
+      plan.topCategory,
+      plan.qualification,
+      plan.status,
+      faxablePool,
+    );
+  }
+
+  // facilities (Phase 1 ベース) の id 配列を維持して、念のため未使用警告抑制
+  void facilities;
+
+  console.log("Seed complete (v1.3: 全 status 別サンプル + 11 業態診断)");
 }
 
 main()
@@ -466,3 +551,336 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
+// ============================================================================
+// v1.3: 運用イメージのリッチプレビュー用 seed 拡張
+// ----------------------------------------------------------------------------
+// 既存の seedDiagnoses は 3 業態だけだったので、実運用に近い「全 11 業態 +
+// 段階的なステータス進行」を表現する。mock provider と同じ決定論的ロジックで
+// スコア + コメントを生成し、申込詳細の AI 診断タブで「本物の運用ではこう
+// なる」のサンプルが見えるようにする。
+// ============================================================================
+
+type DiagnosisProfile = {
+  /** 最大スコア (ランク S) になる業態。これを中心に他業態のスコアを段階的に下げる */
+  topCategory: FacilityCategory;
+  /** 看護師 / 介護福祉士 など、求職者の主たる資格 (コメントの文脈に使う) */
+  qualificationLabel: string;
+};
+
+const FULL_CATEGORY_ORDER: FacilityCategory[] = [
+  FacilityCategory.HOMEVISIT_NURSE,
+  FacilityCategory.HOMEVISIT_NURSE_PSYCHIATRY,
+  FacilityCategory.HOSPITAL_GENERAL,
+  FacilityCategory.HOSPITAL_ACUTE,
+  FacilityCategory.CLINIC,
+  FacilityCategory.DAYCARE_ELDERLY,
+  FacilityCategory.REHAB_DAY,
+  FacilityCategory.HOMEVISIT_CARE,
+  FacilityCategory.DAYCARE_DISABILITY,
+  FacilityCategory.HOMEVISIT_DISABILITY,
+  FacilityCategory.GROUP_HOME_DISABILITY,
+];
+
+const CATEGORY_LABEL: Record<FacilityCategory, string> = {
+  HOMEVISIT_NURSE: "訪問看護",
+  HOMEVISIT_NURSE_PSYCHIATRY: "精神科訪問看護",
+  HOSPITAL_GENERAL: "総合病院",
+  HOSPITAL_ACUTE: "急性期病院",
+  CLINIC: "外来クリニック",
+  DAYCARE_ELDERLY: "デイサービス",
+  REHAB_DAY: "通所リハビリ",
+  HOMEVISIT_CARE: "訪問介護",
+  DAYCARE_DISABILITY: "障害者デイ",
+  HOMEVISIT_DISABILITY: "障害者訪問介護",
+  GROUP_HOME_DISABILITY: "グループホーム (障害)",
+};
+
+function scoreToRank(score: number): Rank {
+  if (score >= 85) return Rank.S;
+  if (score >= 75) return Rank.A;
+  if (score >= 60) return Rank.B;
+  if (score >= 45) return Rank.C;
+  return Rank.D;
+}
+
+/**
+ * 11 業態 × 決定論的スコアで AI 適職診断を作る。
+ * topCategory を起点に距離が遠いほどスコアが下がる単純なモデル。
+ * 本来は AI 提供だが、seed フェーズでは決定論的に再現する。
+ */
+async function seedFullDiagnoses(applicantId: string, profile: DiagnosisProfile) {
+  const topIndex = FULL_CATEGORY_ORDER.indexOf(profile.topCategory);
+
+  for (let i = 0; i < FULL_CATEGORY_ORDER.length; i++) {
+    const category = FULL_CATEGORY_ORDER[i];
+    const distance = Math.abs(i - topIndex);
+    // top: 90, 隣接: 80 前後、最遠: 35 前後
+    const score = Math.max(30, Math.min(95, 92 - distance * 6 - (i % 3)));
+    const rank = scoreToRank(score);
+    const label = CATEGORY_LABEL[category];
+    const proComment =
+      category === profile.topCategory
+        ? `${profile.qualificationLabel}の経験が${label}と非常に高い相性を示しています。本人面談で詳細を確認するのがおすすめです。`
+        : rank === Rank.A
+          ? `${label}の現場でも、${profile.qualificationLabel}としての経験が活かせる見込みがあります。`
+          : rank === Rank.B
+            ? `${label}は研修や OJT を組み合わせれば活躍可能性があります。`
+            : rank === Rank.C
+              ? `${label}は本人の希望や転換意向を確認したい業態です。`
+              : `${label}は今回の候補者にとって優先度の低い業態です。`;
+    const conComment =
+      category === profile.topCategory
+        ? `オンコール対応や単独訪問への抵抗感は、本人面談で必ず確認してください。`
+        : rank === Rank.A
+          ? `現場文化との相性は配属先により異なるため、面談で確認をお勧めします。`
+          : rank === Rank.B
+            ? `業務量や夜勤体制とのギャップに留意する必要があります。`
+            : rank === Rank.C
+              ? `経験のミスマッチが想定されるため、慎重な配属判断が必要です。`
+              : `業種転換にあたる可能性が高く、現時点ではマッチ度は低めです。`;
+
+    await prisma.diagnosis.upsert({
+      where: { applicantId_category: { applicantId, category } },
+      create: { applicantId, category, score, rank, proComment, conComment },
+      update: { score, rank, proComment, conComment },
+    });
+  }
+}
+
+/** 段階的に進めた SkillSheet (一部入力 / 全項目入力) */
+async function seedRichSkillSheet(applicantId: string, level: "partial" | "complete") {
+  const partial = {
+    educations: [
+      { schoolName: "(架空) 東京都立医療短期大学", department: "看護学科", graduatedOn: "2007-03" },
+    ],
+    careers: [],
+    skills: [{ name: "訪問看護", level: 4 }],
+    desired: { areas: ["東京都新宿区"], schedule: "週 4 日 / 日勤中心", startMonth: "2026-08", salary: 480, notes: "" },
+    selfPR: "",
+  };
+  const complete = {
+    educations: [
+      { schoolName: "(架空) 東京都立第一高等学校", department: "普通科", graduatedOn: "2003-03" },
+      { schoolName: "(架空) 東京都立医療短期大学", department: "看護学科", graduatedOn: "2007-03" },
+    ],
+    careers: [
+      {
+        company: "(架空) みなと総合病院",
+        role: "内科病棟 看護師",
+        from: "2007-04",
+        to: "2013-03",
+        achievements: "急性期病棟で 3 交代勤務、新人指導を担当",
+      },
+      {
+        company: "(架空) 中央訪問看護ステーション",
+        role: "訪問看護師",
+        from: "2013-04",
+        to: "2020-03",
+        achievements: "単独訪問・記録・ご家族対応。担当利用者 25 名",
+      },
+      {
+        company: "(架空) 訪問看護ステーションみどり",
+        role: "主任",
+        from: "2020-04",
+        to: "",
+        achievements: "シフト管理・OJT 兼務",
+      },
+    ],
+    skills: [
+      { name: "訪問看護", level: 5 },
+      { name: "ご家族対応", level: 5 },
+      { name: "新人指導", level: 4 },
+      { name: "電子カルテ", level: 4 },
+    ],
+    desired: {
+      areas: ["東京都新宿区", "東京都渋谷区"],
+      schedule: "週 4 日 / 日勤中心 / オンコール可",
+      startMonth: "2026-08",
+      salary: 560,
+      notes: "管理職としての関わりも前向き",
+    },
+    selfPR:
+      "訪問看護にて 10 年以上、ご利用者・ご家族との対話を大切に支援してきました。新人育成にも携わり、現場運営に貢献できます。",
+  };
+  const data = level === "partial" ? partial : complete;
+
+  await prisma.skillSheet.upsert({
+    where: { applicantId },
+    create: {
+      applicantId,
+      educations: data.educations,
+      careers: data.careers,
+      skills: data.skills,
+      desired: data.desired,
+      selfPR: data.selfPR,
+      savedAt: new Date(),
+      submittedAt: level === "complete" ? new Date() : null,
+      completedAt: level === "complete" ? new Date() : null,
+      lastEditedBy: "applicant",
+    },
+    update: {
+      educations: data.educations,
+      careers: data.careers,
+      skills: data.skills,
+      desired: data.desired,
+      selfPR: data.selfPR,
+      savedAt: new Date(),
+      submittedAt: level === "complete" ? new Date() : null,
+      completedAt: level === "complete" ? new Date() : null,
+      lastEditedBy: "applicant",
+    },
+  });
+}
+
+/** AI 面接 (5 ターン分) のターンと要約を作る */
+async function seedRichInterview(applicantId: string) {
+  const interview = await prisma.interview.upsert({
+    where: { applicantId },
+    create: {
+      applicantId,
+      status: "completed",
+      startedAt: new Date("2026-05-12T10:00:00+09:00"),
+      endedAt: new Date("2026-05-12T10:14:00+09:00"),
+      durationSec: 840,
+      channel: "text",
+      provider: "mock",
+      language: "ja",
+      turnCount: 10,
+      transcript:
+        "ai: 本日はお時間ありがとうございます。まずは現在のお仕事についてお聞かせください。\napplicant: 訪問看護にて 10 年以上、ご利用者・ご家族との対話を大切に支援してきました。\nai: これまでで最も貢献できたと感じる場面を教えてください。\napplicant: 新人の OJT を 3 年務め、3 名を独り立ちまで導いた経験があります。\nai: 次の職場で大切にしたい働き方を教えてください。\napplicant: 週 4 日の日勤中心で、オンコールも対応可能です。\nai: 強みと、逆に苦手と感じる業務をそれぞれ教えてください。\napplicant: 強みはご家族対応と新人育成。大規模組織でのスピード調整は苦手です。\nai: 最後に伝えたいことやご質問はありますか?\napplicant: 訪問看護を中心に提案いただけると嬉しいです。",
+      summary: {
+        overallScore: 82,
+        headline: "訪問看護領域でリーダー候補として高く評価できる人材",
+        strengths: ["ご家族対応", "新人 OJT", "観察力"],
+        concerns: ["大規模組織でのスピード調整に慣れが必要"],
+        skillsToAdd: [
+          { name: "新人 OJT", level: 4 },
+          { name: "ご家族コミュニケーション", level: 5 },
+        ],
+        desiredUpdates: {
+          schedule: "週 4 日 / 日勤中心 / オンコール可",
+          startMonth: "2026-08",
+          areas: ["東京都新宿区", "東京都渋谷区"],
+          notes: "管理職としての関わりも前向き",
+        },
+        selfPRDraft:
+          "10 年以上の訪問看護経験と、3 名の新人を独り立ちまで導いた育成実績。ご家族対応を強みとする。",
+        recommendedNextAction: "営業フローに進める (訪問看護を第一候補で提案)",
+      },
+    },
+    update: {
+      status: "completed",
+      endedAt: new Date(),
+    },
+  });
+
+  // 既存の Turn を消して再生成 (idempotent)
+  await prisma.interviewTurn.deleteMany({ where: { interviewId: interview.id } });
+  const turns = [
+    { role: "ai", text: "本日はお時間ありがとうございます。まずは現在のお仕事についてお聞かせください。" },
+    { role: "applicant", text: "訪問看護にて 10 年以上、ご利用者・ご家族との対話を大切に支援してきました。" },
+    { role: "ai", text: "これまでで最も貢献できたと感じる場面を教えてください。" },
+    { role: "applicant", text: "新人の OJT を 3 年務め、3 名を独り立ちまで導いた経験があります。" },
+    { role: "ai", text: "次の職場で大切にしたい働き方を教えてください。" },
+    { role: "applicant", text: "週 4 日の日勤中心で、オンコールも対応可能です。" },
+    { role: "ai", text: "強みと、逆に苦手と感じる業務をそれぞれ教えてください。" },
+    { role: "applicant", text: "強みはご家族対応と新人育成。大規模組織でのスピード調整は苦手です。" },
+    { role: "ai", text: "最後に伝えたいことやご質問はありますか?" },
+    { role: "applicant", text: "訪問看護を中心に提案いただけると嬉しいです。" },
+  ];
+  for (let i = 0; i < turns.length; i++) {
+    await prisma.interviewTurn.create({
+      data: {
+        interviewId: interview.id,
+        turnIndex: i,
+        role: turns[i].role,
+        text: turns[i].text,
+        provider: turns[i].role === "ai" ? "mock" : "manual",
+      },
+    });
+  }
+}
+
+/** 複数施設に FAX 送信票を作成、一部に反応 (興味あり / 検討中) を入れる */
+async function seedRichFaxFlow(
+  applicantId: string,
+  facilityIds: string[],
+  options: { reactionCount?: number } = {},
+) {
+  const reactionCount = options.reactionCount ?? 0;
+  for (let i = 0; i < facilityIds.length; i++) {
+    const facilityId = facilityIds[i];
+    const existing = await prisma.faxSheet.findFirst({ where: { applicantId, facilityId } });
+    const sheet = existing
+      ? existing
+      : await prisma.faxSheet.create({
+          data: {
+            applicantId,
+            facilityId,
+            pdfKey: `seed/fax-sheets/${applicantId}-${facilityId}.pdf`,
+            channel: "FAX",
+            status: "SENT",
+            sentAt: new Date(`2026-05-${10 + (i % 3)}T11:00:00+09:00`),
+          },
+        });
+    if (i < reactionCount) {
+      await prisma.faxReaction.upsert({
+        where: { faxSheetId: sheet.id },
+        update: {},
+        create: {
+          faxSheetId: sheet.id,
+          facilityId,
+          interested: i % 2 === 0,
+          comment: i % 2 === 0 ? "(seed) 詳細を送付してほしい" : "(seed) 今回は見送り",
+        },
+      });
+    }
+  }
+}
+
+/**
+ * 1 求職者の status に応じて、必要な seed (診断・スキルシート・面接・FAX・反応) を流す。
+ * 段階的に「実運用ではこの status のときこのデータが揃う」と分かるようにする。
+ */
+async function seedRichPipeline(
+  applicantId: string,
+  topCategory: FacilityCategory,
+  qualificationLabel: string,
+  status: ApplicantStatus,
+  facilityIds: string[],
+) {
+  const isAtLeast = (target: ApplicantStatus): boolean => {
+    const order: ApplicantStatus[] = [
+      "RECEIVED",
+      "DIAGNOSED",
+      "SKILL_SHEET_INPROGRESS",
+      "SKILL_SHEET_DONE",
+      "INTERVIEW_DONE",
+      "SALES_READY",
+      "IN_INTRODUCTION",
+      "CONTRACTED",
+    ];
+    return order.indexOf(status) >= order.indexOf(target);
+  };
+
+  if (isAtLeast("DIAGNOSED")) {
+    await seedFullDiagnoses(applicantId, { topCategory, qualificationLabel });
+  }
+  if (isAtLeast("SKILL_SHEET_INPROGRESS")) {
+    await seedRichSkillSheet(applicantId, "partial");
+  }
+  if (isAtLeast("SKILL_SHEET_DONE")) {
+    await seedRichSkillSheet(applicantId, "complete");
+  }
+  if (isAtLeast("INTERVIEW_DONE")) {
+    await seedRichInterview(applicantId);
+  }
+  if (isAtLeast("IN_INTRODUCTION")) {
+    await seedRichFaxFlow(applicantId, facilityIds.slice(0, 3), { reactionCount: 0 });
+  }
+  if (isAtLeast("CONTRACTED")) {
+    await seedRichFaxFlow(applicantId, facilityIds.slice(0, 3), { reactionCount: 2 });
+  }
+}
+
