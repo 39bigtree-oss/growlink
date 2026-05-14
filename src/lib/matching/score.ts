@@ -1,3 +1,5 @@
+import { distanceToScore, haversineKm } from "@/lib/matching/geo";
+import { allQualificationsMet, isQualificationMet } from "@/lib/matching/skill-hierarchy";
 import type { ApplicantMatchingProfile, ShiftPattern } from "@/lib/schemas/job-order";
 
 /**
@@ -6,15 +8,21 @@ import type { ApplicantMatchingProfile, ShiftPattern } from "@/lib/schemas/job-o
  * 重み配分:
  *   distance 20% / wage 25% / shift 20% / qual 25% / exp 10%
  *
- * 必須資格 (requiredQualifications) を全て保持していない場合は **total = 0** で
- * ハードフィルタする。要件を満たさない応募者を上位に出さないため。
+ * 必須資格は **階層的に判定** (例: "看護師" 要件に対し "認定看護師" 保持者もマッチ)。
+ * 1 つでも欠ければ total=0 のハードフィルタ。
  *
- * 距離スコアは MVP として「都道府県/市区町村の一致度」のみ。
- * 緯度経度 + Haversine 距離は v1.5 で実装予定。
+ * 距離スコアは Facility に緯度経度が設定されていれば Haversine 距離、
+ * 無ければ都道府県/市区町村の一致度にフォールバック。
  */
 
 export type JobOrderForMatching = {
-  facility: { prefecture: string; city: string };
+  facility: {
+    prefecture: string;
+    city: string;
+    /** v1.8: 緯度経度 (Haversine 距離計算用) */
+    lat?: number | null;
+    lng?: number | null;
+  };
   position: string;
   employmentType: string;
   hourlyWageMin: number | null;
@@ -54,22 +62,38 @@ export function scoreMatch(
 ): MatchScore {
   const reasoning: string[] = [];
 
-  // 1) 必須資格ハードフィルタ
-  const missingRequired = jobOrder.requiredQualifications.filter(
-    (q) => !applicant.qualifications.includes(q),
+  // 1) 必須資格ハードフィルタ (階層判定で上位資格保持もマッチ扱い)
+  const qualCheck = allQualificationsMet(
+    jobOrder.requiredQualifications,
+    applicant.qualifications,
   );
-  if (missingRequired.length > 0) {
+  if (!qualCheck.ok) {
     return {
       total: 0,
       breakdown: { distance: 0, wage: 0, shift: 0, qual: 0, exp: 0 },
-      reasoning: [`必須資格未保持: ${missingRequired.join(", ")} → 候補から除外`],
+      reasoning: [`必須資格未保持 (階層含む): ${qualCheck.missing.join(", ")} → 除外`],
       hardFiltered: true,
     };
   }
 
-  // 2) 距離スコア (都道府県/市区町村の一致度)
+  // 2) 距離スコア — 緯度経度があれば Haversine、無ければ行政区一致度
   let distance = 0;
-  if (applicant.prefecture && jobOrder.facility.prefecture === applicant.prefecture) {
+  const facLatLng =
+    jobOrder.facility.lat != null && jobOrder.facility.lng != null
+      ? { lat: jobOrder.facility.lat, lng: jobOrder.facility.lng }
+      : null;
+  const appLatLng = (applicant as { lat?: number | null; lng?: number | null }).lat != null
+    ? {
+        lat: (applicant as unknown as { lat: number }).lat,
+        lng: (applicant as unknown as { lng: number }).lng,
+      }
+    : null;
+
+  if (facLatLng && appLatLng) {
+    const km = haversineKm(facLatLng, appLatLng);
+    distance = distanceToScore(km);
+    reasoning.push(`Haversine 距離 ${km.toFixed(1)} km → score ${distance}`);
+  } else if (applicant.prefecture && jobOrder.facility.prefecture === applicant.prefecture) {
     distance += 60;
     reasoning.push(`同一都道府県 (${applicant.prefecture})`);
     if (applicant.city && jobOrder.facility.city === applicant.city) {
@@ -122,10 +146,10 @@ export function scoreMatch(
     reasoning.push(`シフト一致 ${hits}/${total} 軸`);
   }
 
-  // 5) 必須資格 + 推奨資格のスコア
+  // 5) 必須資格 + 推奨資格のスコア (推奨も階層判定)
   const requiredMet = jobOrder.requiredQualifications.length === 0 ? 100 : 100;
   const preferredHits = jobOrder.preferredQualifications.filter((q) =>
-    applicant.qualifications.includes(q),
+    isQualificationMet(q, applicant.qualifications),
   ).length;
   const preferredBonus =
     jobOrder.preferredQualifications.length === 0

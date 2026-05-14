@@ -52,3 +52,14 @@ registerHandler<Record<string, never>>(
     console.log("[compliance:residence_expiry] result", result);
   },
 );
+
+// v1.8: ナーチャシナリオの定期 scan (5 分 or 日次)
+registerHandler<Record<string, never>>(
+  "compliance",
+  "nurture.scan",
+  async () => {
+    const { runNurtureScan } = await import("@/lib/nurture/runner");
+    const result = await runNurtureScan();
+    console.log("[nurture:scan] result", result);
+  },
+);

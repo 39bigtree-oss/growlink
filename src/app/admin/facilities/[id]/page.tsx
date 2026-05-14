@@ -6,6 +6,7 @@ import { findFacilityById } from "@/lib/repositories/facility";
 
 import { updateFacilityAction, type FacilityActionState } from "../actions";
 import { FacilityForm } from "../_facility-form";
+import { FacilityPortalTokensPanel } from "./_portal-tokens-panel";
 
 export const metadata = { title: "施設編集 | グロウリンク" };
 export const dynamic = "force-dynamic";
@@ -51,6 +52,8 @@ export default async function FacilityEditPage({
           />
         </CardContent>
       </Card>
+
+      <FacilityPortalTokensPanel facilityId={facility.id} />
     </div>
   );
 }

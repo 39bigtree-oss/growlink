@@ -17,6 +17,7 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -45,6 +46,7 @@ const NAV: NavItem[] = [
   { href: "/admin/placements", label: "紹介成立", icon: Scale, cap: "placements:read" },
   { href: "/admin/invoices", label: "請求書", icon: Receipt, cap: "invoices:read" },
   { href: "/admin/my-numbers", label: "マイナンバー", icon: IdCard, cap: "my-number:read" },
+  { href: "/admin/nurture", label: "ナーチャ自動化", icon: Sparkles, cap: "applicants:read" },
   { href: "/admin/audit", label: "監査ログ", icon: ShieldCheck, cap: "audit:read" },
   { href: "/admin/system-status", label: "機能状態", icon: Info },
   { href: "/admin/settings", label: "設定", icon: Settings, cap: "settings:read" },

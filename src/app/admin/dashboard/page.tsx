@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { OperatingModePanel } from "@/components/operating-mode-panel";
+import { computeSurvivalRates } from "@/lib/analytics/survival-rate";
 import { requireAdminSession } from "@/lib/auth/session";
 import { loadDashboardKpi } from "@/lib/dashboard/kpi";
 import {
@@ -30,11 +31,12 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   await requireAdminSession();
-  const [kpi, sales, daily, facilityStats] = await Promise.all([
+  const [kpi, sales, daily, facilityStats, survival] = await Promise.all([
     loadDashboardKpi(),
     getGlobalKpis(),
     getDailyMetrics(30),
     getFacilityResponseStats(20),
+    computeSurvivalRates(),
   ]);
 
   return (
@@ -57,6 +59,24 @@ export default async function DashboardPage() {
         <KpiCard title="返信率" value={`${(sales.replyRate * 100).toFixed(1)}%`} description="FAX 送信のうち反応が返ってきた割合" />
         <KpiCard title="興味あり率" value={`${(sales.interestedRate * 100).toFixed(1)}%`} description="FAX 送信のうち興味ありと回答された割合" />
         <KpiCard title="成約率" value={`${(sales.contractRate * 100).toFixed(1)}%`} description="全申込のうち成約に至った割合" />
+        <KpiCard
+          title="6ヶ月生存率"
+          value={
+            survival.m6.evaluable > 0
+              ? `${(survival.m6.rate * 100).toFixed(1)}%`
+              : "—"
+          }
+          description={`入社後 6 ヶ月以上経過した ${survival.m6.evaluable} 件の Placement のうち、6 ヶ月時点で在籍中`}
+        />
+        <KpiCard
+          title="12ヶ月生存率"
+          value={
+            survival.m12.evaluable > 0
+              ? `${(survival.m12.rate * 100).toFixed(1)}%`
+              : "—"
+          }
+          description={`入社後 12 ヶ月以上経過した ${survival.m12.evaluable} 件中の在籍率`}
+        />
       </div>
 
       <Card>

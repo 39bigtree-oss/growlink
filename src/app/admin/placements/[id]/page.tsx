@@ -10,9 +10,12 @@ import {
   scoreAttritionRisk,
 } from "@/lib/analytics/attrition-risk";
 import { applyRefund } from "@/lib/billing/calc";
+import { hasCapability } from "@/lib/auth/rbac";
 import { requireAdminSession } from "@/lib/auth/session";
 import { findPlacementById } from "@/lib/repositories/placement";
 import type { RefundTier } from "@/lib/schemas/contract";
+
+import { AttritionForm } from "./_attrition-form";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +25,8 @@ export default async function PlacementDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireAdminSession("placements:read");
+  const staff = await requireAdminSession("placements:read");
+  const canWrite = hasCapability(staff.role, "placements:write");
   const p = await findPlacementById(id);
   if (!p) notFound();
 
@@ -156,6 +160,23 @@ export default async function PlacementDetailPage({
           <p className="text-xs text-muted-foreground">
             ※ v1.6 はルールベース計算。退職実績データが十分溜まったら v2.0 で ML モデルに置換予定。
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">退職実績の記録 (ML 教師データ)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            ここで記録した退職日が「退職予兆スコア」の確定値 + 入社後 6/12 ヶ月生存率の
+            元データになります。空欄保存で記録解除も可能。
+          </p>
+          <AttritionForm
+            placementId={p.id}
+            currentAttrition={p.attritionAt}
+            canWrite={canWrite}
+          />
         </CardContent>
       </Card>
 

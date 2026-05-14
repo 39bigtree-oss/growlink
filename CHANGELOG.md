@@ -4,6 +4,88 @@
 
 ## [Unreleased]
 
+## [1.8.0] — 2026-05-14
+
+### Added — 辛口評価への正面突破
+
+71/100 評価を 80+ に持ち上げるための 7 領域同時投入。
+**27 新規テスト / 計 367 passing**、新規ルート 5 件、新規 lib 8 本、Runbook 4 本、新規仕様書 2 本。
+
+#### 1. 施設ポータル (片側 SaaS 解消)
+
+- **`/portal/[token]`** — HMAC 署名 URL でログイン不要の施設専用ページ
+- 施設は自分宛 FAX 一覧 / 案件 / 請求書を閲覧可能
+- 「興味あり / 見送り」を **施設側から直接送信** (signed URL の reaction フォーム)
+- `/admin/facilities/[id]` 下部に「ポータル URL を発行」ボタン (有効期限 90 日 + クリップボードコピー)
+- 新規モデル: `FacilityPortalToken` (アクセスログ + revoke 機能)
+- 新規 lib: `src/lib/portal/token.ts` — HMAC sign/verify + DB 連携
+
+#### 2. ナーチャ自動化エンジン (営業自動化)
+
+- 新規モデル: `NurtureSequence` + `NurtureStepExecution`
+- **5 種のシナリオ定義** (FAX 未反応 / スキルシート未提出 / 興味あり 24h / 入社 1ヶ月 / 3ヶ月)
+- ステップ kind: `WAIT` / `EMAIL` / `STAFF_TODO`
+- `runNurtureScan()` で `nextRunAt <= now` の active シナリオを進行
+- 新規 BullMQ ハンドラ `compliance:nurture.scan` 登録
+- 管理画面: `/admin/nurture` (シナリオ定義 + 実行履歴 + 手動 scan ボタン)
+
+#### 3. 退職実績入力 + 6/12 ヶ月生存率 (ML 教師データ収集)
+
+- Placement 詳細に「退職を記録」フォーム (`AttritionForm`)
+- 退職日入力 / 解除アクション `setAttritionAction` (audit 二重記録付き)
+- 新規 lib: `src/lib/analytics/survival-rate.ts` (Kaplan-Meier の簡易版)
+- ダッシュボードに **6ヶ月生存率 / 12ヶ月生存率** カードを追加 (評価可能件数 + 在籍率)
+
+#### 4. マッチング v2 (Haversine + スキル階層)
+
+- `Facility.lat` / `lng` カラムを追加
+- 新規 lib: `src/lib/matching/geo.ts` — Haversine 距離 + 距離スコア変換
+- 新規 lib: `src/lib/matching/skill-hierarchy.ts` — `SKILL_SUBSUMPTION` で「看護師」要件に「認定看護師」もマッチ
+- `scoreMatch()` を更新: 緯度経度があれば Haversine、無ければ行政区フォールバック
+- 推奨資格判定も階層化
+
+#### 5. 監査ログ チェックポイント (検証スケール解消)
+
+- 新規モデル: `AuditCheckpoint` (lastEventHash + eventCountAtCp スナップショット)
+- 新規 lib: `src/lib/audit/checkpoint.ts` — `captureAuditCheckpoint()` で差分検証 + 保存
+- `/admin/audit` に「チェックポイントを保存」ボタンを追加
+- 1 万件 → 10 万件にスケールしても **差分のみ検証** で常時定速度
+
+#### 6. 観測性 + Runbook 4 本
+
+- **`/api/health/deep`** — DB / Storage / Email / Queue / AI / Sentry の状態を 1 つの endpoint で確認
+- `docs/runbook/00-on-call-handover.md` — オンコール引き継ぎ
+- `docs/runbook/01-db-down.md` — DB ダウン対応 (リストア手順含む)
+- `docs/runbook/02-fax-stuck.md` — FAX 詰まり対応
+- `docs/runbook/03-ai-quota-exceeded.md` — AI クォータ超過
+
+#### 7. First Real Run Guide
+
+- **`docs/first-real-run.md`** — Phase A〜G の実 AI / 実メール / 実ポータル接続チェックリスト
+- 「全部 mock のまま」を脱出するための明確な手順
+- AI 品質チェック完了の判定基準 5 項目
+
+#### サイドバー + Feature Registry
+
+- サイドバーに「ナーチャ自動化」ナビ追加
+- `src/lib/system-status/features.ts` に 8 新規機能登録 (`portal.facility_view`, `nurture.engine`, `analytics.attrition_record` 等)
+- `/admin/system-status` で新機能の状態が一覧表示
+
+### テスト (新規 27 / 計 367 passing)
+
+- `tests/unit/portal-token.test.ts` (6) — HMAC sign/verify, 改ざん検知, 期限切れ
+- `tests/unit/matching-haversine.test.ts` (5) — 東京-大阪 ≒ 400km, スコア変換
+- `tests/unit/skill-hierarchy.test.ts` (6) — 上位資格マッチ, 完全一致, missing 報告
+- `tests/unit/nurture-sequences.test.ts` (6) — 定義整合性, nextRunAt 計算
+
+### Non-Goals (v1.8 で意図的にやらないこと)
+
+- ❌ ナーチャシナリオの **自動トリガー起動** (現在は手動 + scan、v1.9 で FAX 送信時自動起動)
+- ❌ ナーチャ EMAIL ステップの実 sendEmail 接続 (v1.9)
+- ❌ チェックポイントの BullMQ 自動スケジュール化 (v1.9)
+- ❌ Facility 緯度経度の Geocoding API 自動取得 (v1.9)
+- ❌ 施設ポータルの **案件更新リクエスト** 機能 (v1.9)
+
 ## [1.7.0] — 2026-05-14
 
 ### Added — フィーチャ状態の可視化 (スタッフが使える / 使えないが一目で分かる)

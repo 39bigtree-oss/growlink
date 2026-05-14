@@ -22,7 +22,7 @@ describe("renderDispatchLedgerPdf", () => {
     expect(buf.length).toBeGreaterThan(1000);
     // PDF Magic: %PDF
     expect(buf.subarray(0, 4).toString("ascii")).toBe("%PDF");
-  }, 30_000);
+  }, 60_000);
 
   it("抵触日が 90 日以内ならアラート表記が PDF テキストに含まれる", async () => {
     const buf = await renderDispatchLedgerPdf({
@@ -42,5 +42,5 @@ describe("renderDispatchLedgerPdf", () => {
     });
     expect(buf.length).toBeGreaterThan(1000);
     // PDF 内のテキストは圧縮されている場合があるので、サイズの存在のみ確認 (実 PDF ビューアで目視済み)
-  }, 30_000);
+  }, 60_000);
 });

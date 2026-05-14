@@ -79,7 +79,16 @@ export type FeatureKey =
   // ux
   | "ux.mobile_drawer"
   | "ux.i18n_5lang_jobseeker"
-  | "ux.i18n_admin";
+  | "ux.i18n_admin"
+  // v1.8: 内部システムの "正面突破" 機能群
+  | "portal.facility_view"
+  | "nurture.engine"
+  | "analytics.attrition_record"
+  | "analytics.survival_rate"
+  | "matching.haversine"
+  | "matching.skill_hierarchy"
+  | "compliance.audit_checkpoint"
+  | "observability.health_deep";
 
 export type FeatureMeta = {
   key: FeatureKey;
@@ -488,6 +497,85 @@ export const FEATURES: FeatureMeta[] = [
     state: "PLANNED",
     summary: "管理画面側の多言語化。外国人スタッフ運用向け。",
     plannedVersion: "v1.9+",
+  },
+
+  // ===== v1.8 「正面突破」 =====
+  {
+    key: "portal.facility_view",
+    name: "施設ポータル (ログイン不要)",
+    category: "integration",
+    state: "READY",
+    summary:
+      "HMAC 署名 URL で施設が自分宛 FAX/案件/請求書を閲覧、反応を直接送信できる片側 SaaS の解消策。",
+    provider: "internal",
+  },
+  {
+    key: "nurture.engine",
+    name: "ナーチャ自動化エンジン",
+    category: "core",
+    state: "LIMITED",
+    summary:
+      "FAX 未反応 / スキルシート未提出 / 入社 1/3 ヶ月 などのシーケンスを自動進行。BullMQ + 手動 scan で運用。",
+    limits: [
+      "v1.8 では EMAIL ステップは記録のみ (実送信は v1.9 で sendEmail に接続)",
+      "FAX/反応/入社などのトリガー自動起動はまだ手動。順次接続中",
+    ],
+    provider: "internal",
+    plannedVersion: "v1.9 でトリガー自動接続 + 実メール送信",
+  },
+  {
+    key: "analytics.attrition_record",
+    name: "退職実績の入力 (ML 教師データ収集)",
+    category: "billing",
+    state: "READY",
+    summary:
+      "Placement 詳細から退職日を入力 → 退職予兆スコアの確定値 + 6/12ヶ月生存率の元データになる。",
+    provider: "internal",
+  },
+  {
+    key: "analytics.survival_rate",
+    name: "入社後 6 / 12 ヶ月生存率",
+    category: "billing",
+    state: "READY",
+    summary:
+      "ダッシュボードに表示。退職実績データが少ないうちは小サンプルなので注意。",
+    provider: "internal",
+  },
+  {
+    key: "matching.haversine",
+    name: "Haversine 距離マッチング",
+    category: "core",
+    state: "LIMITED",
+    summary:
+      "Facility.lat/lng が設定済なら直線距離 km でスコアリング、無ければ都道府県/市区町村一致にフォールバック。",
+    limits: ["lat/lng は手動入力 (geocoding API は v1.9)"],
+    plannedVersion: "v1.9 で Geocoding API 連携",
+  },
+  {
+    key: "matching.skill_hierarchy",
+    name: "資格の階層的マッチ",
+    category: "core",
+    state: "READY",
+    summary:
+      "「看護師」要件に対し「認定看護師」も上位資格としてマッチ。SKILL_SUBSUMPTION テーブルで管理。",
+    provider: "internal",
+  },
+  {
+    key: "compliance.audit_checkpoint",
+    name: "監査ログのチェックポイント (差分検証)",
+    category: "compliance",
+    state: "READY",
+    summary:
+      "月末スナップショット保存 → 次回は差分のみ検証することでスケールさせる。手動保存ボタンあり。",
+    plannedVersion: "v1.9 で BullMQ スケジュール化",
+  },
+  {
+    key: "observability.health_deep",
+    name: "深いヘルスチェック (/api/health/deep)",
+    category: "security",
+    state: "READY",
+    summary: "DB / Storage / Email / Queue / AI / Sentry の状態を 1 つのエンドポイントで確認。",
+    provider: "internal",
   },
 ];
 
