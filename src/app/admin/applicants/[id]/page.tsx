@@ -292,17 +292,45 @@ export default async function ApplicantDetailPage({
                       </ul>
                     </section>
 
-                    {/* v1.3: PDF プレビュー埋め込み (求職者にメール添付で送られる現物) */}
-                    <section>
-                      <h3 className="mb-1 text-sm font-semibold">求職者に送信される診断 PDF</h3>
-                      <p className="mb-3 text-xs text-muted-foreground">
-                        新規登録時に、下記の A4 2 枚の PDF が招待メールに自動で添付されて求職者へ送信されます。
-                      </p>
-                      <iframe
-                        src={`/api/diagnosis/${applicant.id}/pdf`}
-                        title="診断 PDF プレビュー"
-                        className="h-[640px] w-full rounded-md border"
-                      />
+                    {/* v2.0: 求職者向け / 施設向けの 2 種類 PDF */}
+                    <section className="space-y-5">
+                      <div>
+                        <h3 className="mb-1 text-sm font-semibold">
+                          📨 求職者へ送信される PDF (v2.0 新版)
+                          <Badge variant="success" className="ml-2 text-[10px]">NEW</Badge>
+                        </h3>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                          16 タイプ × 4 軸プロファイル × 強み TOP3 × 希望業態フィット × 隠れた適性 × 相性の良い同僚タイプ。
+                          A4 1 枚に収めて「もらって嬉しい」フォーマットに。
+                        </p>
+                        <iframe
+                          src={`/api/diagnosis/v2/${applicant.id}/applicant`}
+                          title="v2 求職者向け診断 PDF"
+                          className="h-[680px] w-full rounded-md border"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="mb-1 text-sm font-semibold">
+                          🏥 施設・紹介先へ送る PDF (v2.0 業務版)
+                          <Badge variant="success" className="ml-2 text-[10px]">NEW</Badge>
+                        </h3>
+                        <p className="mb-3 text-xs text-muted-foreground">
+                          氏名はイニシャル化 (PII 最小化)。業務適性・留意点を客観データで提示。
+                        </p>
+                        <iframe
+                          src={`/api/diagnosis/v2/${applicant.id}/facility`}
+                          title="v2 施設向け診断 PDF"
+                          className="h-[680px] w-full rounded-md border"
+                        />
+                      </div>
+                      <details className="rounded-md border bg-muted/30 p-3 text-xs">
+                        <summary className="cursor-pointer">v1 旧 PDF を表示する (アーカイブ)</summary>
+                        <iframe
+                          src={`/api/diagnosis/${applicant.id}/pdf`}
+                          title="v1 旧診断 PDF"
+                          className="mt-3 h-[600px] w-full rounded-md border"
+                        />
+                      </details>
                     </section>
                   </div>
                 ) : (
