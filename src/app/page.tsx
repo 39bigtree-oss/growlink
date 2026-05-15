@@ -15,6 +15,7 @@ import {
 import { SiteFooter } from "@/components/brand/footer";
 import { TsumugiLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { NewBadge } from "@/components/ui/new-badge";
 import { BRAND } from "@/lib/brand";
 
 export const metadata = {
@@ -148,9 +149,11 @@ export default function LandingPage() {
                     管理画面にログイン <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <a href="#flow">業務フローを見る</a>
-                </Button>
+                <NewBadge feature="v1.2-flow-section">
+                  <Button asChild size="lg" variant="outline">
+                    <a href="#flow">業務フローを見る</a>
+                  </Button>
+                </NewBadge>
               </div>
               <dl className="grid grid-cols-3 gap-4 pt-4 text-sm">
                 <Stat label="対応業態" value="11" />
@@ -261,7 +264,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex gap-2">
                   <span aria-hidden className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                  AI 面接は 5 問・10〜15 分、24h いつでも完了
+                  AI 面接は 5 問、10〜15 分、24h いつでも完了
                 </li>
               </ul>
             </article>
