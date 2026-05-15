@@ -6,6 +6,7 @@ import { hasCapability } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { renderFacilityDiagnosisPdf } from "@/lib/pdf/v2/facilityPdf";
 import { getCachedOrRender, makeCacheKey } from "@/lib/pdf/v2/cache";
+import { initialsFromKana } from "@/lib/utils/romanize";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -30,6 +31,8 @@ export async function GET(
     select: {
       lastName: true,
       firstName: true,
+      lastNameKana: true,
+      firstNameKana: true,
       updatedAt: true,
       qualifications: { select: { name: true } },
       skillSheet: { select: { careers: true } },
@@ -42,7 +45,7 @@ export async function GET(
     const buffer = await getCachedOrRender(key, async () => {
       const diagnosis = await buildDiagnosisV2ForApplicant(applicantId);
       if (!diagnosis) throw new Error("Diagnosis unavailable");
-      const initials = `${applicant.lastName.slice(0, 1)}.${applicant.firstName.slice(0, 1)}.`;
+      const initials = initialsFromKana(applicant.lastNameKana, applicant.firstNameKana);
       const careersCount = Array.isArray(applicant.skillSheet?.careers)
         ? (applicant.skillSheet?.careers as unknown[]).length
         : 0;
