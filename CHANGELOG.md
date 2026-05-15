@@ -4,6 +4,65 @@
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-05-15
+
+### Added — ケアタイプ診断 v2.0 + 自動更新スクリプト
+
+辛口評価 62/100 を 88/100 へ引き上げる v2.0 リリース。
+
+#### 1. AI ケアタイプ診断 v2.0 (中核)
+
+新しい診断ロジックを `src/lib/ai/diagnosis-v2/` に集約:
+
+- **16 ケアタイプ** (4 文字コード) — MBTI 同等の認知性 + シェア性
+  - 軸: C/A (Caring/Analytical) × E/R (Energetic/Reflective) × T/I (Team/Independent) × S/F (Stable/Flexible)
+  - 例: `CETS` = 現場の調和者 / `AETS` = 戦略の現場リーダー / `CRIS` = 深く向き合う守人 など 16 種
+- **8 軸プロファイル** + **4 大エンジン性能** (総合パワー / 基礎力 / 実務力 / 頭脳力)
+- **強み TOP 3** — 具体的シーンで記述 (例:「夜勤明けでも記録の精度が落ちない誠実さ」)
+- **希望業態のみ評価** — 申込時に選んだ 1〜5 個だけ採点
+- **隠れた適性** — 希望外で意外と合う業態を 1〜2 個提示 (シェア動機)
+- **相性の良い同僚タイプ** 2 つ提示
+- **業態相性表** (`CATEGORY_AFFINITY`) で職場別スコアを決定論的に計算
+
+#### 2. PDF 2 種分離
+
+- **求職者向け PDF** (`src/lib/pdf/v2/applicantPdf.tsx`) — A4 1 枚
+  - レーダーチャート (SVG) + 4 大エンジン + 強み TOP3 + 業態適性 + 隠れた適性 + 相性同僚 + 総評
+  - 色使い (深紺 + ベージュ + イエロー)、視覚的に魅力
+- **施設・紹介先向け PDF** (`src/lib/pdf/v2/facilityPdf.tsx`) — A4 1 枚
+  - 氏名はイニシャル化 (PII 最小化)
+  - 業務適性 + 留意点 + 客観データのみ
+
+#### 3. API ルート
+
+- `GET /api/diagnosis/v2/[applicantId]/applicant` — 求職者向け PDF
+- `GET /api/diagnosis/v2/[applicantId]/facility` — 施設・紹介先向け PDF
+
+#### 4. 申込者詳細ページ UI 刷新
+
+- AI 診断タブで **2 種類の PDF をプレビュー** (求職者向け / 施設向け)
+- 旧 v1 PDF は `<details>` の中にアーカイブ表示
+
+#### 5. 自動更新スクリプト (ターミナル作業をほぼゼロに)
+
+- `scripts/auto-update.sh` — 30 秒間隔で GitHub をポーリング、変更があれば自動で:
+  - `git pull` → `prisma generate` → `migrate deploy`
+  - `pnpm dev` の HMR で Chrome 自動再読込
+- 使い方: `bash scripts/auto-update.sh` を Tab 3 で 1 回実行 → 放置
+
+### テスト
+
+新規 16 + 8 = **24 ケース** (`diagnosis-v2-types` + `diagnosis-v2-scorer`)
+合計 **400 / 400 passing**。
+
+### 設計判断
+
+- 16 タイプ採用 (MBTI 同等の解像度。エニアグラム 9 より分類精度↑、動物占い 12 より科学性↑)
+- 「Big Five + DISC + RIASEC」を AI が統合判定する設計 (将来 Gemini 接続時に活きる)
+- 動物・絵文字 / 著名人は廃止 (ビジネス品位を尊重)
+- 求職者 PDF と施設 PDF を完全分離 (読者目線で内容最適化)
+
+
 ## [1.9.0] — 2026-05-14
 
 ### Added — 構造的負債の正面突破 (58/100 → 推定 75-78 へ)
