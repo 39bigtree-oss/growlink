@@ -154,39 +154,40 @@ export function computeBaseDiagnosis(input: DiagnosisInput): DiagnosisV2Result {
 
   // 1) 8 軸スコアを計算
   // 資格・経験・希望業態から軸を傾ける
+  // v2.0.3: 全体的にスコアを底上げ (求職者が「自分のことを認めてくれてる」と感じる水準に)
   const has = (q: string) => input.qualifications.some((x) => x.includes(q));
-  const caringBase = 55 + (has("介護福祉士") ? 12 : 0) + (has("認知症ケア") ? 8 : 0);
-  const energeticBase = 50 + Math.min(input.experienceYears * 1.5, 20) + (has("救急") ? 10 : 0);
-  const teamBase = 55 + (input.desiredCategories.some((c) => c.startsWith("HOSPITAL")) ? 10 : -5);
-  const stableBase = 50 + Math.min(input.experienceYears * 1.0, 25);
+  const caringBase = 68 + (has("介護福祉士") ? 10 : 0) + (has("認知症ケア") ? 8 : 0) + (has("看護師") ? 6 : 0);
+  const energeticBase = 64 + Math.min(input.experienceYears * 1.5, 20) + (has("救急") ? 10 : 0);
+  const teamBase = 66 + (input.desiredCategories.some((c) => c.startsWith("HOSPITAL")) ? 8 : 0);
+  const stableBase = 65 + Math.min(input.experienceYears * 1.2, 22);
 
   const traits: TraitScores = {
-    caring: clamp(caringBase + (r.next() - 0.5) * 20, 5, 95),
-    energetic: clamp(energeticBase + (r.next() - 0.5) * 20, 5, 95),
-    team: clamp(teamBase + (r.next() - 0.5) * 20, 5, 95),
-    stable: clamp(stableBase + (r.next() - 0.5) * 20, 5, 95),
+    caring: Math.floor(clamp(caringBase + (r.next() - 0.5) * 16, 50, 96)),
+    energetic: Math.floor(clamp(energeticBase + (r.next() - 0.5) * 16, 50, 96)),
+    team: Math.floor(clamp(teamBase + (r.next() - 0.5) * 16, 50, 96)),
+    stable: Math.floor(clamp(stableBase + (r.next() - 0.5) * 16, 50, 96)),
   };
 
   const typeCode = codeFromScores(traits);
   const type = getCareType(typeCode);
 
-  // 2) 4 大エンジン (Big Five の主成分にマップ)
+  // 2) 4 大エンジン (Big Five の主成分にマップ) — v2.0.3 底上げ
   const engines: EngineScores = {
     totalPower: makeEngine(
-      Math.round((traits.energetic + traits.team + traits.stable) / 3),
-      "業務全般の遂行力",
+      Math.round((traits.energetic + traits.team + traits.stable + traits.caring) / 4) + 8,
+      "業務全般を高水準でこなす総合力",
     ),
     foundation: makeEngine(
-      Math.round((traits.stable + traits.caring) / 2 + 5),
-      "誠実さと継続力",
+      Math.round((traits.stable + traits.caring) / 2) + 10,
+      "誠実さと継続力で土台を支える力",
     ),
     execution: makeEngine(
-      Math.round((traits.energetic + traits.stable) / 2),
-      "実務の確実な遂行",
+      Math.round((traits.energetic + traits.stable) / 2) + 8,
+      "現場での実務遂行と判断スピード",
     ),
     intellect: makeEngine(
-      Math.round(((100 - traits.caring) * 0.5 + (100 - traits.energetic) * 0.5)),
-      "分析と判断の知性",
+      Math.round((traits.caring + traits.team) / 2) + 6,
+      "観察と分析で本質を捉える知性",
     ),
   };
 
@@ -238,22 +239,45 @@ export function computeBaseDiagnosis(input: DiagnosisInput): DiagnosisV2Result {
   };
 }
 
+/**
+ * 4 大エンジンの「コメント」は **良いところ・理由**を 1 文で書く。
+ * v2.0.3 で「説明」から「ポジティブな根拠」に書き換え。
+ */
 function makeEngine(rawScore: number, theme: string) {
-  const score = Math.round(clamp(rawScore + 5, 35, 95));
-  return {
-    rank: rankFromScore(score),
-    score,
-    comment: `${theme} (Rank ${rankFromScore(score)} / ${score} 点)`,
-  };
+  const score = Math.floor(clamp(rawScore + 5, 55, 98));
+  const rank = rankFromScore(score);
+  let positive: string;
+  if (score >= 85) {
+    positive = `${theme}が極めて高水準。現場の中核として頼られる素質があります。`;
+  } else if (score >= 75) {
+    positive = `${theme}に高い適性。安心して任せられる場面が多いはずです。`;
+  } else if (score >= 65) {
+    positive = `${theme}を着実に発揮できるタイプ。経験と共にさらに伸ばせます。`;
+  } else {
+    positive = `${theme}は伸びしろがある領域。OJT で順調に育つでしょう。`;
+  }
+  return { rank, score, comment: positive };
 }
 
+/**
+ * 業態別コメント — **向いている理由** + **気をつける点**を併記。
+ * v2.0.3 で「環境とのマッチを慎重に」のような曖昧表現を撤廃。
+ */
 function makeCategoryComment(cat: FacilityCategory, score: number, type: CareType): string {
   const label = CATEGORY_LABEL[cat];
-  if (score >= 85) return `${label}: ${type.name} の強みが最も活きる現場の一つ`;
-  if (score >= 75) return `${label}: 高い相性。本人面談で具体的な業務量を確認`;
-  if (score >= 60) return `${label}: 一定の相性。研修やサポート体制と合わせて検討`;
-  if (score >= 45) return `${label}: 環境とのマッチを慎重に確認したい業態`;
-  return `${label}: 今回の候補者にとって優先度の低い業態`;
+  if (score >= 85) {
+    return `${label}: ${type.name}の強みが最大限に活きる現場。早期に主力として活躍が期待できます。`;
+  }
+  if (score >= 75) {
+    return `${label}: 高い相性。${type.catchphrase}という性質が現場文化と合致しやすい業態です。`;
+  }
+  if (score >= 65) {
+    return `${label}: 良好な相性。研修期間に少し時間をかければ十分に力を発揮できます。`;
+  }
+  if (score >= 55) {
+    return `${label}: 一定の適性あり。本人の伸びしろを活かす配属を検討する価値あり。`;
+  }
+  return `${label}: 業務スタイルが少し離れる業態。本人の希望と現場理解を確認した上で検討を。`;
 }
 
 function buildSummary(type: CareType, traits: TraitScores): string {

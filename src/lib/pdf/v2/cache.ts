@@ -26,7 +26,7 @@ const CACHE_ROOT = path.resolve(
  * PDF レンダリングコードのバージョン。
  * フォント・レイアウト変更時にここを上げると古いキャッシュが自動で無視される。
  */
-const RENDER_VERSION = 2; // v2.0.2 (italic 削除)
+const RENDER_VERSION = 3; // v2.0.3 (スコア底上げ + レイアウト改善)
 
 export function makeCacheKey(
   applicantId: string,
