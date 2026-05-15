@@ -22,13 +22,19 @@ const CACHE_ROOT = path.resolve(
   "diagnosis-v2",
 );
 
+/**
+ * PDF レンダリングコードのバージョン。
+ * フォント・レイアウト変更時にここを上げると古いキャッシュが自動で無視される。
+ */
+const RENDER_VERSION = 2; // v2.0.2 (italic 削除)
+
 export function makeCacheKey(
   applicantId: string,
   variant: "applicant" | "facility",
   applicantUpdatedAt: Date,
 ): string {
   const versionTag = Math.floor(applicantUpdatedAt.getTime() / 1000);
-  return `${applicantId}-${variant}-v${versionTag}`;
+  return `${applicantId}-${variant}-r${RENDER_VERSION}-v${versionTag}`;
 }
 
 export async function getCachedPdf(key: string): Promise<Buffer | null> {
