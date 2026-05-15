@@ -22,6 +22,8 @@ import {
 } from "@/lib/applicants/status-machine";
 import { FACILITY_CATEGORY_OPTIONS } from "@/lib/constants/applicant-options";
 import { prisma } from "@/lib/db";
+import { buildDiagnosisV2ForApplicant } from "@/lib/ai/diagnosis-v2/build";
+import { CATEGORY_LABEL as CATEGORY_LABEL_V2 } from "@/lib/ai/diagnosis-v2/scorer";
 
 import { ApplicantTimeline, type TimelineEvent } from "./_timeline";
 import { buildSkillSheetTabData } from "./_skill-sheet-data";
@@ -135,6 +137,8 @@ export default async function ApplicantDetailPage({
 
   const nextOptions = nextStatusOptions(applicant.status);
   const hasDiagnosis = applicant.diagnoses.length > 0;
+  // v2 スコアを page 側でも表示用に取得 (PDF と完全一致させる)
+  const diagnosisV2 = hasDiagnosis ? await buildDiagnosisV2ForApplicant(applicant.id) : null;
 
   return (
     <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_18rem]">
@@ -248,49 +252,90 @@ export default async function ApplicantDetailPage({
                 <FeatureStatusBanner featureKey="ai.diagnosis" />
                 {hasDiagnosis ? (
                   <div className="space-y-5">
-                    {/* v1.3: 11 業態の視覚的スコアバー (実運用イメージで一目で見られる) */}
-                    <section>
-                      <h3 className="mb-2 text-sm font-semibold">業態別スコア</h3>
-                      <p className="mb-3 text-xs text-muted-foreground">
-                        スコア (0〜100) を視覚化。スコアが高い業態ほど候補者にフィットしやすいと判定されています。
-                      </p>
-                      <ul className="space-y-2">
-                        {[...applicant.diagnoses]
-                          .sort((a, b) => b.score - a.score)
-                          .map((d) => (
-                            <li key={d.id} className="space-y-1">
-                              <div className="flex items-center justify-between gap-3 text-xs">
-                                <span className="font-medium">
-                                  {CATEGORY_LABELS[d.category] ?? d.category}
-                                </span>
-                                <span className="flex items-center gap-2">
-                                  <span className="tabular-nums text-muted-foreground">
-                                    {d.score}
-                                  </span>
-                                  <RankPill rank={d.rank} />
-                                </span>
-                              </div>
-                              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                <div
-                                  className={cn(
-                                    "h-full rounded-full",
-                                    rankBarColor(d.rank),
-                                  )}
-                                  style={{ width: `${Math.min(100, d.score)}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                <span className="font-medium text-foreground">向いている点: </span>
-                                {d.proComment}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                <span className="font-medium text-foreground">留意点: </span>
-                                {d.conComment}
-                              </p>
-                            </li>
-                          ))}
-                      </ul>
-                    </section>
+                    {/* v2.0.5: 画面のスコアバーは v2 (PDF と同じ計算) に統一して食い違いを解消 */}
+                    {diagnosisV2 && (
+                      <section className="space-y-4">
+                        <div className="rounded-md border bg-muted/30 p-3 text-xs">
+                          <div className="font-semibold">
+                            タイプ判定: {diagnosisV2.type.name}
+                            <span className="ml-2 text-muted-foreground tabular-nums">({diagnosisV2.typeCode})</span>
+                          </div>
+                          <div className="mt-1 text-muted-foreground">{diagnosisV2.type.catchphrase}</div>
+                        </div>
+                        <div>
+                          <h3 className="mb-2 text-sm font-semibold">希望業態への適性</h3>
+                          <p className="mb-3 text-xs text-muted-foreground">
+                            下記の PDF と同じ計算ロジック (v2) で算出。{Math.floor(diagnosisV2.desiredFit.length)} 件の希望業態を評価。
+                          </p>
+                          {diagnosisV2.desiredFit.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">希望業態が未選択です。</p>
+                          ) : (
+                            <ul className="space-y-2">
+                              {diagnosisV2.desiredFit.map((f) => (
+                                <li key={f.category} className="space-y-1">
+                                  <div className="flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-medium">
+                                      {CATEGORY_LABEL_V2[f.category] ?? f.category}
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                      <span className="tabular-nums text-muted-foreground">
+                                        {Math.floor(f.score)}点
+                                      </span>
+                                      <RankPill rank={f.rank} />
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div
+                                      className={cn(
+                                        "h-full rounded-full",
+                                        rankBarColor(f.rank),
+                                      )}
+                                      style={{ width: `${Math.min(100, Math.floor(f.score))}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{f.comment}</p>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        {diagnosisV2.hiddenFit.length > 0 && (
+                          <div>
+                            <h3 className="mb-2 text-sm font-semibold">隠れた適性</h3>
+                            <p className="mb-3 text-xs text-muted-foreground">
+                              希望外だが、性格傾向から見て相性の良い業態。
+                            </p>
+                            <ul className="space-y-2">
+                              {diagnosisV2.hiddenFit.map((f) => (
+                                <li key={f.category} className="space-y-1">
+                                  <div className="flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-medium">
+                                      {CATEGORY_LABEL_V2[f.category] ?? f.category}
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                      <span className="tabular-nums text-muted-foreground">
+                                        {Math.floor(f.score)}点
+                                      </span>
+                                      <RankPill rank={f.rank} />
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div
+                                      className={cn(
+                                        "h-full rounded-full",
+                                        rankBarColor(f.rank),
+                                      )}
+                                      style={{ width: `${Math.min(100, Math.floor(f.score))}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{f.comment}</p>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </section>
+                    )}
 
                     {/* v2.0: 求職者向け / 施設向けの 2 種類 PDF */}
                     <section className="space-y-5">
