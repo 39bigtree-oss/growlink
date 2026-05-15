@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   codeLabel: { color: "#cbd5e1", fontSize: 7, marginTop: 2 },
   typeNameWrap: { flex: 1 },
   typeName: { fontSize: 14, fontWeight: 700, marginBottom: 2 },
-  typeEnglish: { fontSize: 9, color: "#475569", fontStyle: "italic", marginBottom: 4 },
+  typeEnglish: { fontSize: 9, color: "#475569", marginBottom: 4 },
   typeCatch: { fontSize: 9, color: "#1e3a8a" },
   sectionTitle: {
     fontSize: 10,
