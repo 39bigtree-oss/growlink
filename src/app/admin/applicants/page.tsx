@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { NewBadge } from "@/components/ui/new-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -69,9 +70,11 @@ export default async function ApplicantsListPage({
           <p className="text-sm text-muted-foreground">{page.total} 件 (フィルタ適用後)</p>
         </div>
         {canWrite && (
-          <Button asChild>
-            <Link href="/admin/applicants/new">+ 求職者を新規登録</Link>
-          </Button>
+          <NewBadge feature="v1.2-applicant-new">
+            <Button asChild>
+              <Link href="/admin/applicants/new">+ 求職者を新規登録</Link>
+            </Button>
+          </NewBadge>
         )}
       </header>
 
