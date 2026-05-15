@@ -5,14 +5,17 @@ import { buildDiagnosisV2ForApplicant } from "@/lib/ai/diagnosis-v2/build";
 import { hasCapability } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { renderApplicantDiagnosisPdf } from "@/lib/pdf/v2/applicantPdf";
+import { getCachedOrRender, makeCacheKey } from "@/lib/pdf/v2/cache";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 120;
 
 /**
  * v2.0 求職者向け AI キャリア診断 PDF。
- * A4 1 枚に、4 軸プロファイル + 4 大エンジン + 強み TOP3 + 業態適性 + 隠れた適性 +
- * 相性の良い同僚タイプ + 総評 が収まる。
+ *
+ * 初回は React-PDF レンダリングで 30〜90 秒かかる場合があるが、
+ * .storage/diagnosis-v2/ にキャッシュされるので 2 回目以降は即時応答。
+ * applicant.updatedAt がキャッシュキーに含まれるので、データ更新時は自動で無効化される。
  */
 export async function GET(
   _req: Request,
@@ -26,23 +29,29 @@ export async function GET(
   const { applicantId } = await ctx.params;
   const applicant = await prisma.applicant.findFirst({
     where: { id: applicantId, deletedAt: null },
-    select: { lastName: true, firstName: true },
+    select: { lastName: true, firstName: true, updatedAt: true },
   });
   if (!applicant) return new NextResponse("Not Found", { status: 404 });
 
-  const diagnosis = await buildDiagnosisV2ForApplicant(applicantId);
-  if (!diagnosis) return new NextResponse("Diagnosis unavailable", { status: 422 });
-
-  const buffer = await renderApplicantDiagnosisPdf({
-    applicantFullName: `${applicant.lastName} ${applicant.firstName}`,
-    generatedAt: new Date(),
-    diagnosis,
-  });
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="career-diagnosis-${applicantId}-applicant.pdf"`,
-      "Cache-Control": "no-store",
-    },
-  });
+  const key = makeCacheKey(applicantId, "applicant", applicant.updatedAt);
+  try {
+    const buffer = await getCachedOrRender(key, async () => {
+      const diagnosis = await buildDiagnosisV2ForApplicant(applicantId);
+      if (!diagnosis) throw new Error("Diagnosis unavailable");
+      return renderApplicantDiagnosisPdf({
+        applicantFullName: `${applicant.lastName} ${applicant.firstName}`,
+        generatedAt: new Date(),
+        diagnosis,
+      });
+    });
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="career-diagnosis-${applicantId}-applicant.pdf"`,
+        "Cache-Control": "private, max-age=86400",
+      },
+    });
+  } catch (err) {
+    return new NextResponse(`PDF render failed: ${(err as Error).message}`, { status: 500 });
+  }
 }

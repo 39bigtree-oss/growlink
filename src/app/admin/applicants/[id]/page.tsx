@@ -294,6 +294,12 @@ export default async function ApplicantDetailPage({
 
                     {/* v2.0: 求職者向け / 施設向けの 2 種類 PDF */}
                     <section className="space-y-5">
+                      <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+                        ⏱️ <strong>初回のみ 30〜90 秒</strong>かかります (日本語フォントの初期化のため)。
+                        2 回目以降はキャッシュから即時表示されます。
+                        プレビューが真っ白に見える時は、ブラウザの新しいタブで PDF の URL を直接開くと
+                        確実に進捗が分かります。
+                      </div>
                       <div>
                         <h3 className="mb-1 text-sm font-semibold">
                           📨 求職者へ送信される PDF (v2.0 新版)
