@@ -30,6 +30,13 @@ import { buildSkillSheetTabData } from "./_skill-sheet-data";
 import { SkillSheetTab } from "./_skill-sheet-tab";
 import { InterviewTab } from "./_interview-tab";
 import { StatusTransitionButtons } from "./_status-transition";
+import {
+  EditBasicInfoButton,
+  EditQualificationsButton,
+  EditDesiredCategoriesButton,
+} from "./_edit-dialogs";
+import { RegenerateDiagnosisButton } from "./_regenerate-diagnosis-button";
+import { ApplicantHistoryTab } from "./_history-tab";
 
 export const metadata = { title: "申込詳細 | グロウリンク" };
 export const dynamic = "force-dynamic";
@@ -182,10 +189,33 @@ export default async function ApplicantDetailPage({
             <TabsTrigger value="skill-sheet">スキルシート</TabsTrigger>
             <TabsTrigger value="interview">面接</TabsTrigger>
             <TabsTrigger value="fax">FAX 履歴</TabsTrigger>
+            <TabsTrigger value="history" className="text-muted-foreground data-[state=active]:text-foreground">
+              修正履歴
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic">
             <Card>
+              {canWrite && (
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
+                  <CardTitle className="text-sm text-muted-foreground">基本情報</CardTitle>
+                  <EditBasicInfoButton
+                    applicantId={applicant.id}
+                    current={{
+                      lastName: applicant.lastName,
+                      firstName: applicant.firstName,
+                      lastNameKana: applicant.lastNameKana,
+                      firstNameKana: applicant.firstNameKana,
+                      email: applicant.email,
+                      phone: applicant.phone,
+                      birthDate: applicant.birthDate.toISOString().slice(0, 10),
+                      gender: applicant.gender as "MALE" | "FEMALE" | "OTHER",
+                      nationality: applicant.nationality,
+                      language: applicant.language,
+                    }}
+                  />
+                </CardHeader>
+              )}
               <CardContent className="grid grid-cols-1 gap-3 p-6 text-sm md:grid-cols-2">
                 <Field label="メール" value={applicant.email} />
                 <Field label="電話" value={applicant.phone} />
@@ -202,16 +232,32 @@ export default async function ApplicantDetailPage({
           <TabsContent value="qualifications">
             <Card>
               <CardContent className="space-y-4 p-6 text-sm">
-                <div>
-                  <div className="text-xs text-muted-foreground">保有資格</div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">保有資格</div>
+                    {canWrite && (
+                      <EditQualificationsButton
+                        applicantId={applicant.id}
+                        current={applicant.qualifications.map((q) => q.name)}
+                      />
+                    )}
+                  </div>
                   <div>
                     {applicant.qualifications.length > 0
                       ? applicant.qualifications.map((q) => q.name).join(" / ")
                       : "なし"}
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">希望業態</div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">希望業態</div>
+                    {canWrite && (
+                      <EditDesiredCategoriesButton
+                        applicantId={applicant.id}
+                        current={applicant.desiredCategories}
+                      />
+                    )}
+                  </div>
                   <div>
                     {applicant.desiredCategories.length > 0
                       ? applicant.desiredCategories
@@ -228,7 +274,7 @@ export default async function ApplicantDetailPage({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base">AI 適職診断</CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {hasDiagnosis && (
                     <Button asChild variant="outline" size="sm">
                       <a
@@ -239,6 +285,9 @@ export default async function ApplicantDetailPage({
                         PDF ダウンロード
                       </a>
                     </Button>
+                  )}
+                  {canWrite && hasDiagnosis && (
+                    <RegenerateDiagnosisButton applicantId={applicant.id} />
                   )}
                   {canWrite && (
                     <RunDiagnosisButton
@@ -504,6 +553,21 @@ export default async function ApplicantDetailPage({
                     </section>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">修正履歴</CardTitle>
+                <CardDescription>
+                  基本情報・資格・希望業態の編集と AI 診断やり直しを時系列で記録します。
+                  本人タイムラインとは別の管理用ログです。
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ApplicantHistoryTab applicantId={applicant.id} />
               </CardContent>
             </Card>
           </TabsContent>
